@@ -13,6 +13,7 @@ import LeaveManagement from './HR layout/Leave/LeaveManagement.jsx';
 import Payroll from './HR layout/Payroll/Payroll.jsx';
 import AttendanceManagement from './HR layout/Attendance/AttendanceManagement.jsx';
 import Recruitment from './HR layout/Recruitment/Recruitment.jsx';
+import EmployeeDetail from './HR layout/Employee/EmployeeDetail.jsx';
 
 // Employee Layout Imports
 import EmployeeLayout from './Employee layout/Empcomponentse/Layoute.jsx';
@@ -34,18 +35,25 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Check initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      if (session) fetchUserProfile(session.user.id);
-      else setLoading(false);
+      if (session) {
+        fetchUserProfile(session.user.id);
+      } else {
+        localStorage.removeItem('activePortal'); // Clear memory if no active session
+        setLoading(false);
+      }
     });
 
+    // Listen for login/logout events
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (session) {
         fetchUserProfile(session.user.id);
       } else {
         setUserRole(null);
+        localStorage.removeItem('activePortal'); // Wipe memory immediately on logout
         setLoading(false);
       }
     });
@@ -61,16 +69,23 @@ export default function App() {
       .single();
       
     if (error) {
-      console.error("❌ Error fetching profile:", error.message);
-      console.error("Error details:", error);
-      setLoading(false);
-      return;
+      console.error("Error fetching profile:", error);
     }
     
-    console.log("✅ Profile fetched successfully:", data);
-    if (data && data.role) {
-      console.log("✅ Role set to:", data.role);
-      setUserRole(data.role);
+    if (data) {
+      const dbRole = data.role.toLowerCase();
+      // Read which portal they clicked on the login screen
+      const requestedPortal = localStorage.getItem('activePortal') || dbRole;
+
+      // SECURITY GATEKEEPER: 
+      // If a regular employee tries to hack localStorage to access 'hr', force them back to 'employee'.
+      if (requestedPortal === 'hr' && dbRole !== 'hr') {
+        setUserRole('employee');
+      } else {
+        // THE MAGIC LINE: If HR clicked 'employee', this temporarily sets their app role to 'employee'
+        // unlocking the Employee layout and dashboard!
+        setUserRole(requestedPortal);
+      }
     }
     setLoading(false);
   };
@@ -116,6 +131,7 @@ export default function App() {
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/employee" element={<EmployeeDetails />} />
+            <Route path="/employee/:id" element={<EmployeeDetail />} />
             <Route path="/attendance" element={<AttendanceManagement />} />
             <Route path="/payroll" element={<Payroll />} />
             <Route path="/leave" element={<LeaveManagement />} />

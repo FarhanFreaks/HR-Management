@@ -8,10 +8,10 @@ import { supabase } from "../config/supabaseClient";
 
 const Login = () => {
   const navigate = useNavigate();
-  // We keep the role toggle for visual consistency, but the database will dictate the actual routing.
+  // The role toggle dictates the intended portal
   const [role, setRole] = useState("HR");
   
-  // New State for Supabase Auth
+  // State for Supabase Auth
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -25,17 +25,51 @@ const Login = () => {
     setLoading(true);
     setErrorMsg("");
 
-    // Supabase Authentication Call
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email,
-      password: password,
-    });
+    // 1. CAPTURE INTENT IMMEDIATELY: Save this BEFORE calling Supabase.
+    // This completely fixes the race condition with App.jsx
+    const requestedPortal = role.toLowerCase(); 
+    localStorage.setItem('activePortal', requestedPortal);
 
-    if (error) {
+    try {
+      // 2. Authenticate the user's identity
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+      });
+
+      if (authError) throw authError;
+
+      // 3. Fetch their official role from the profiles table
+      const userId = authData.user.id;
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single();
+
+      if (profileError || !profileData) {
+        await supabase.auth.signOut();
+        throw new Error("Profile not found in database. Contact your administrator.");
+      }
+
+      const dbRole = profileData.role.toLowerCase();
+
+      // 4. Hierarchical Security Check
+      // Block regular employees from entering the HR portal. 
+      if (requestedPortal === 'hr' && dbRole !== 'hr') {
+        await supabase.auth.signOut(); // Instantly revoke the session
+        throw new Error("Access Denied: You do not have HR privileges.");
+      }
+
+      // We do not need to manually navigate() here anymore! 
+      // App.jsx will automatically see the session, read the localStorage we set above, 
+      // and securely route you to the correct dashboard.
+
+    } catch (error) {
       setErrorMsg(error.message);
-      setLoading(false);
-    } else {
-      // If successful, App.jsx will detect the session change and route automatically.
+      // Clean up the memory if they typed the wrong password or lacked permissions
+      localStorage.removeItem('activePortal'); 
+    } finally {
       setLoading(false);
     }
   };
@@ -119,7 +153,6 @@ const Login = () => {
           </div>
         </div>
       ) : forgotPage ? (
-        /* Kept your existing Forgot Password code untouched for now */
         <div className="forgot-container">
           <div className="forgot-left">
             <div className="forgot-image-box">
@@ -147,7 +180,6 @@ const Login = () => {
           </div>
         </div>
       ) : (
-        /* Kept your existing Reset Password code untouched */
         <div className="forgot-container">
            {/* ... existing reset UI ... */}
            <button type="button" className="back-btn" onClick={() => { setResetPage(false); setForgotPage(false); }}>Back</button>
