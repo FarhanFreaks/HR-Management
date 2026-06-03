@@ -1,0 +1,313 @@
+.payroll-module {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg, 24px);
+  padding-top: var(--space-md, 16px);
+}
+
+/* ── Quick Insights ── */
+.payroll-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-lg, 24px);
+}
+
+.stat-card {
+  background: var(--bg-card, #FFFFFF);
+  border: 1px solid var(--border-color, #E2E8F0);
+  border-radius: var(--radius-lg, 16px);
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: var(--shadow-card, 0 1px 3px rgba(0,0,0,0.06));
+}
+
+.stat-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary, #64748B);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary, #1B2559);
+}
+
+.stat-sub {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted, #94A3B8);
+}
+
+/* ── Main Card & Controls ── */
+.payroll-card {
+  background: var(--bg-card, #FFFFFF);
+  border: 1px solid var(--border-color, #E2E8F0);
+  border-radius: var(--radius-lg, 16px);
+  padding: var(--space-lg, 24px);
+  box-shadow: var(--shadow-card, 0 1px 3px rgba(0,0,0,0.06));
+}
+
+.payroll-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-lg, 24px);
+}
+
+.payroll-card__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #1B2559);
+}
+
+.payroll-controls {
+  display: flex;
+  gap: 12px;
+}
+
+.payroll-input, .payroll-select {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #E2E8F0);
+  background: var(--bg-page, #F0F2F8);
+  color: var(--text-primary, #1B2559);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  outline: none;
+}
+
+/* ── Table Grid ── */
+.payroll-grid-header {
+  display: grid;
+  grid-template-columns: 80px 1.5fr 1.2fr 1fr 100px 120px;
+  padding: 12px 16px;
+  background: var(--bg-page, #F0F2F8);
+  border-radius: var(--radius-sm, 8px);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-secondary, #64748B);
+  margin-bottom: 8px;
+}
+
+.payroll-grid-row {
+  display: grid;
+  grid-template-columns: 80px 1.5fr 1.2fr 1fr 100px 120px;
+  padding: 16px;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color, #E2E8F0);
+  font-size: 14px;
+  color: var(--text-primary, #1B2559);
+}
+
+.emp-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+}
+
+.emp-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent-blue, #EFF6FF);
+  color: #3B5BDB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ── Status & Buttons ── */
+.btn-process {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  background: #3B5BDB;
+  color: #FFFFFF;
+  transition: opacity 0.2s;
+}
+
+.btn-process:hover {
+  opacity: 0.85;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+  text-align: center;
+}
+
+/* ── Scrollable Table Container ── */
+.table-scroll {
+  max-height: 400px; 
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.table-scroll::-webkit-scrollbar { width: 14px; }
+.table-scroll::-webkit-scrollbar-track { background: transparent; }
+.table-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(148, 163, 184, 0.35);
+  border-radius: 10px;
+  border: 4px solid var(--bg-card, #FFFFFF); 
+  background-clip: padding-box;
+}
+
+.empty-state {
+  padding: 40px;
+  text-align: center;
+  color: var(--text-secondary, #64748B);
+}
+/* ── Export Button ── */
+.btn-export {
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: #15803D; /* Spreadsheet Green */
+  color: #FFFFFF;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.2s;
+}
+
+.btn-export:hover {
+  background: #166534;
+}
+
+.btn-export:disabled {
+  background: #94A3B8;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+/* ── Bulk Action Checkboxes ── */
+.row-checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #3B5BDB;
+}
+
+/* Update the grid to make room for the checkbox column */
+.payroll-grid-header, .payroll-grid-row {
+  grid-template-columns: 40px 80px 1.5fr 1.2fr 1fr 120px 150px;
+}
+
+/* ── Floating Action Bar (For Bulk Actions) ── */
+.bulk-action-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  padding: 8px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1E3A8A;
+}
+
+.btn-bulk {
+  background: #2563EB;
+  color: white;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.btn-bulk:hover { opacity: 0.9; }
+
+/* ── Interactive Row Styling ── */
+.payroll-grid-row {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.payroll-grid-row:hover {
+  background: #F8FAFC;
+}
+
+/* ── Slide-Out Drawer (Salary Breakdown) ── */
+.drawer-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 999;
+  display: flex;
+  justify-content: flex-end;
+  animation: fadeIn 0.2s;
+}
+
+.salary-drawer {
+  width: 400px;
+  background: #FFFFFF;
+  height: 100vh;
+  box-shadow: -4px 0 24px rgba(0,0,0,0.1);
+  padding: 32px;
+  animation: slideLeft 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  display: flex;
+  flex-direction: column;
+}
+
+.drawer-close {
+  align-self: flex-end;
+  background: none; border: none; font-size: 24px;
+  cursor: pointer; color: #64748B;
+}
+
+.breakdown-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #E2E8F0;
+  font-size: 14px;
+}
+.breakdown-item.total {
+  font-weight: 700; font-size: 16px; color: #1B2559; border-top: 2px solid #1B2559;
+}
+
+/* ── Payslip Modal ── */
+.payslip-modal {
+  width: 600px;
+  background: #FFFFFF;
+  border-radius: 12px;
+  margin: auto;
+  padding: 40px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  border-top: 8px solid #1B2559;
+}
+
+.btn-payslip {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
+  color: #475569;
+}
+.btn-payslip:hover { background: #F1F5F9; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideLeft { from { transform: translateX(100%); } to { transform: translateX(0); } }

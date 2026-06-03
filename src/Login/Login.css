@@ -1,0 +1,229 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: sans-serif;
+}
+
+body {
+  background: #f5f5f5;
+}
+
+/* LOGIN PAGE */
+.login-container,
+.forgot-container {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+}
+
+/* LEFT SIDE */
+.left-side,
+.forgot-left {
+  width: 50%;
+  background: #f7f8fc;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.image-box,
+.forgot-image-box {
+  width: 100%;
+  height: 100%;
+}
+
+.image-box img,
+.forgot-image-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* RIGHT SIDE */
+.right-side,
+.forgot-right {
+  width: 50%;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 60px;
+}
+
+/* Switch Button */
+.switch-btn {
+  width: 300px;
+  background: #2447b5;
+  border-radius: 40px;
+  padding: 5px;
+  display: flex;
+  margin: 0 auto 40px;
+}
+
+.switch-btn button {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: white;
+  padding: 15px;
+  border-radius: 40px;
+  font-size: 22px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.active-btn {
+  background: white !important;
+  color: #2447b5 !important;
+}
+
+/* Login Page Styles */
+.login-title {
+  text-align: center;
+  color: #2447b5;
+  font-size: 40px;
+  margin-bottom: 40px;
+}
+
+.login-form label,
+.forgot-form label {
+  display: block;
+  margin-bottom: 10px;
+  margin-top: 20px;
+  color: #2447b5;
+  font-size: 18px;
+}
+
+.input-box,
+.forgot-input {
+  height: 60px;
+  border: 1px solid #9ab0ff;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.input-box input,
+.forgot-input input {
+  width: 100%;
+  border: none;
+  outline: none;
+  font-size: 17px;
+}
+
+.input-box svg,
+.forgot-input svg {
+  color: gray;
+  font-size: 18px;
+}
+
+.forgot-password {
+  text-align: right;
+  margin-top: 15px;
+}
+
+.forgot-btn {
+  border: none;
+  background: none;
+  color: #2d5cff;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.login-btn,
+.submit-btn {
+  width: 180px;
+  height: 55px;
+  background: #2447b5;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 22px;
+  cursor: pointer;
+  display: block;
+  margin: 40px auto 20px;
+}
+
+/* Send OTP Button */
+.send-otp-btn {
+  width: 180px;
+  height: 45px;
+  background: #2d5cff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  display: block;
+  margin: 15px auto 25px;
+}
+
+.back-btn {
+  width: 180px;
+  height: 50px;
+  border: none;
+  background: #ddd;
+  border-radius: 5px;
+  display: block;
+  margin: auto;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+/* Forgot Page Titles */
+.forgot-logo {
+  text-align: center;
+  color: #2447b5;
+  font-size: 45px;
+}
+
+.forgot-subtitle {
+  text-align: center;
+  color: gray;
+  margin-bottom: 30px;
+}
+
+.forgot-title {
+  text-align: center;
+  color: #2447b5;
+  font-size: 38px;
+  margin-bottom: 40px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 900px) {
+  .login-container,
+  .forgot-container {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .left-side,
+  .forgot-left,
+  .right-side,
+  .forgot-right {
+    width: 100%;
+  }
+
+  .left-side,
+  .forgot-left {
+    height: 400px;
+  }
+
+  .right-side,
+  .forgot-right {
+    padding: 30px;
+  }
+
+  .switch-btn {
+    width: 250px;
+  }
+
+  .login-title,
+  .forgot-title {
+    font-size: 32px;
+  }
+}

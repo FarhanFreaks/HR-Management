@@ -1,0 +1,130 @@
+/* Container layout to center the card on the page */
+.action-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh; /* Changed to vh so it centers vertically perfectly on the screen */
+  width: 100%;
+  padding: 1.5rem;
+  background-color: #f8fafc;
+  box-sizing: border-box; /* Prevents padding from breaking layout width */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Card wrapper layout */
+.action-card {
+  background: #ffffff;
+  padding: 2.5rem 2rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  max-width: 450px;
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  box-sizing: border-box;
+  
+  /* Forces internal container elements to align perfectly center */
+  display: flex;
+  flex-direction: column;
+  align-items: center; 
+  text-align: center;
+}
+
+.action-title {
+  margin: 0 0 0.5rem 0;
+  color: #1e293b;
+  font-size: 1.5rem;
+  font-weight: 600;
+  width: 100%;
+}
+
+.action-subtitle {
+  margin: 0 0 2rem 0;
+  color: #64748b;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  width: 100%;
+}
+
+/* Button Layout Structure */
+.button-group {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+  width: 100%; /* Ensures the grid container respects card borders */
+}
+
+/* Base button styles */
+.btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.btn__icon {
+  font-size: 1.1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Login button variant (Blue) */
+.btn--login {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.btn--login:hover {
+  background-color: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.btn--login:active {
+  transform: translateY(0);
+}
+
+/* Attendance button variant (Green) */
+.btn--attendance {
+  background-color: #16a34a;
+  color: #ffffff;
+}
+
+.btn--attendance:hover {
+  background-color: #15803d;
+  transform: translateY(-1px);
+}
+
+.btn--attendance:active {
+  transform: translateY(0);
+}
+
+/* Responsive updates for mobile and narrow viewports */
+@media (max-width: 480px) {
+  .action-container {
+    padding: 1rem;
+  }
+  
+  .action-card {
+    padding: 2rem 1.25rem;
+  }
+
+  .button-group {
+    flex-direction: column; /* Stack buttons vertically on small screens */
+    width: 100%;
+  }
+
+  .btn {
+    width: 100%; 
+  }
+}

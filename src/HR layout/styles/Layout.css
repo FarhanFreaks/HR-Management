@@ -1,0 +1,89 @@
+/* ── App Shell ── */
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #f0f2f8;
+}
+
+/* ── Main content area (offset by sidebar width) ── */
+.main-content {
+  margin-left: 260px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ── Page Header ── */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 40px 20px;
+  background: #f0f2f8;
+}
+
+.page-title {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: #1a2b5e;
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+/* ── Report Button ── */
+.report-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 20px;
+  background: #3b5bdb;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.report-btn:hover {
+  background: #2f4bc4;
+}
+
+.report-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ── Page body ── */
+.page-body {
+  flex: 1;
+  padding: 8px 40px 40px;
+}
+
+/* ── Mobile: offset by narrow sidebar ── */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 64px;
+  }
+
+  .page-header {
+    padding: 20px 18px 14px;
+  }
+
+  .page-title {
+    font-size: 22px;
+  }
+
+  .report-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .page-body {
+    padding: 6px 16px 30px;
+  }
+}

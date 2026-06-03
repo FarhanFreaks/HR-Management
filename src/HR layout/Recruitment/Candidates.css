@@ -1,0 +1,519 @@
+/* =====================
+   CANDIDATES TAB CSS
+   ===================== */
+
+.candidates-wrapper {
+  padding: 8px 0;
+}
+
+/* ---- Stats ---- */
+.cand-stats-row {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.cand-stat-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: center;
+}
+
+.cand-stat-value {
+  font-size: 24px;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.cand-stat-label {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+/* ---- Filter Bar ---- */
+.candidate-filter-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.candidate-search {
+  flex: 1;
+  min-width: 200px;
+  padding: 9px 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1e293b;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.candidate-search:focus {
+  border-color: #1e293b;
+}
+
+.candidate-filter-bar select {
+  padding: 9px 12px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #475569;
+  background: #fff;
+  outline: none;
+  cursor: pointer;
+}
+
+.candidate-filter-bar select:focus {
+  border-color: #1e293b;
+}
+
+/* ---- Results ---- */
+.cand-results-count {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 16px;
+}
+
+/* ---- Cards Grid ---- */
+.cand-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+/* ---- Candidate Card ---- */
+.cand-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.cand-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  transform: translateY(-2px);
+}
+
+.cand-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.cand-avatar-lg {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cand-card-info {
+  flex: 1;
+}
+
+.cand-card-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 2px;
+}
+
+.cand-card-role {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0 0 2px;
+}
+
+.cand-card-email {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.cand-status-badge {
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.cand-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* ---- Skills ---- */
+.cand-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.cand-skill-tag {
+  background: #f1f5f9;
+  color: #475569;
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.cand-skill-more {
+  background: #e2e8f0;
+  color: #64748b;
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* ---- Card Footer ---- */
+.cand-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 10px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.cand-score-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cand-score-label {
+  font-size: 11px;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.cand-score-bar-bg {
+  width: 80px;
+  height: 6px;
+  background: #f1f5f9;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.cand-score-bar-fill {
+  height: 100%;
+  background: #22c55e;
+  border-radius: 99px;
+}
+
+.cand-score-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.cand-view-btn {
+  background: none;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1d4ed8;
+  cursor: pointer;
+}
+
+/* ---- Empty State ---- */
+.cand-empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #94a3b8;
+}
+
+.cand-empty-state h3 {
+  font-size: 18px;
+  color: #475569;
+  margin-bottom: 8px;
+}
+
+/* ---- Profile Modal ---- */
+.profile-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.profile-modal {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  overflow: hidden;
+  animation: slideUp 0.25s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 24px 28px;
+  border-bottom: 1px solid #f1f5f9;
+  background: #f8fafc;
+}
+
+.profile-header-left {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.profile-avatar-xl {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  font-size: 20px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.profile-name {
+  font-size: 20px;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0 0 4px;
+}
+
+.profile-role {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0 0 4px;
+}
+
+.profile-email {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.profile-header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.profile-status-badge {
+  padding: 5px 14px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.profile-close {
+  background: #e2e8f0;
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.profile-body {
+  padding: 24px 28px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.profile-score-box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 16px 20px;
+}
+
+.profile-score-circle {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #22c55e;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.profile-score-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #15803d;
+  margin: 0 0 2px;
+}
+
+.profile-score-sub {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0;
+}
+
+.profile-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.profile-info-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.profile-info-grid span {
+  font-size: 11px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.profile-info-grid strong {
+  font-size: 13px;
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.profile-section h4 {
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 10px;
+}
+
+.profile-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.profile-skill-tag {
+  background: #1e293b;
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.profile-about,
+.profile-notes {
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.profile-notes {
+  background: #fef9c3;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border-left: 3px solid #f59e0b;
+}
+
+.profile-footer {
+  display: flex;
+  gap: 10px;
+  padding: 16px 28px;
+  border-top: 1px solid #f1f5f9;
+  justify-content: flex-end;
+}
+
+.profile-btn-reject {
+  background: #fee2e2;
+  color: #dc2626;
+  border: none;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.profile-btn-schedule {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: none;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.profile-btn-advance {
+  background: #22c55e;
+  color: #fff;
+  border: none;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 1024px) {
+  .cand-cards-grid { grid-template-columns: 1fr; }
+  .cand-stats-row  { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 600px) {
+  .cand-stats-row  { grid-template-columns: repeat(2, 1fr); }
+  .candidate-filter-bar { flex-direction: column; }
+}

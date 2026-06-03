@@ -1,0 +1,126 @@
+/* ── Wrapper centres the card ── */
+.login-info-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 10px 0;
+}
+
+/* ── Card ── */
+.login-info-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 32px 36px 28px;
+  width: 100%;
+  max-width: 680px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.card-heading {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a2b5e;
+  margin: 0 0 24px;
+}
+
+/* ── Profile Row ── */
+.profile-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 28px;
+}
+
+.profile-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #c5d0f5;
+  color: #2a3f8f;
+  font-size: 20px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.profile-details {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.profile-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a2b5e;
+}
+
+.profile-role {
+  font-size: 14px;
+  color: #7a8aaa;
+  font-weight: 400;
+}
+
+/* ── Info Fields ── */
+.info-field {
+  border: 1px solid #e5e9f2;
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-bottom: 14px;
+}
+
+.field-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #9aa4be;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.field-value {
+  font-size: 15px;
+  font-weight: 500;
+  color: #1a2b5e;
+}
+
+/* ── Sign Out Button ── */
+.signout-btn {
+  width: 100%;
+  padding: 14px;
+  margin-top: 8px;
+  background: #f04040;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.signout-btn:hover {
+  background: #d93333;
+}
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  .login-info-card {
+    padding: 22px 18px 20px;
+  }
+
+  .profile-avatar {
+    width: 52px;
+    height: 52px;
+    font-size: 16px;
+  }
+
+  .profile-name {
+    font-size: 17px;
+  }
+}

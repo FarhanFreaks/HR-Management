@@ -1,0 +1,257 @@
+* {
+  box-sizing: border-box;
+}
+
+.recruitment-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a2145;
+  margin-bottom: 24px;
+}
+
+/* Tabs */
+
+.tabs {
+  display: flex;
+  gap: 24px;
+  border-bottom: 2px solid #e5e8f0;
+  margin-bottom: 28px;
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0 0 12px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #8899bb;
+  border-bottom: 3px solid transparent;
+  transition: 0.3s;
+}
+
+.tab-btn.active {
+  color: #1a2145;
+  border-bottom-color: #3cb87a;
+}
+
+/* Active Opening Card */
+
+.active-card {
+  background: #fff;
+  border: 1px solid #e8eaf5;
+  border-radius: 12px;
+  padding: 20px 32px;
+  width: fit-content;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+
+.active-label {
+  font-size: 14px;
+  color: #555;
+}
+
+.active-count {
+  font-size: 34px;
+  font-weight: 800;
+  color: #3cb87a;
+}
+
+.active-subtitle {
+  color: #888;
+  font-size: 13px;
+}
+
+/* Search & Filter */
+
+.filters {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.search-box {
+  flex: 1;
+  min-width: 250px;
+}
+
+.search-box input,
+.filters select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #e0e3ee;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+}
+
+/* Job Grid */
+
+.job-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 18px;
+  margin-bottom: 32px;
+}
+
+.job-card {
+  background: #f2f3f7;
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+}
+
+.job-card h3 {
+  margin-bottom: 10px;
+  color: #1a2145;
+}
+
+.dept-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 30px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.job-card p {
+  margin: 6px 0;
+  color: #555;
+  font-size: 14px;
+}
+
+/* Department Section */
+
+.department-section {
+  background: #fff;
+  border: 1px solid #e8eaf5;
+  border-radius: 14px;
+  padding: 24px;
+}
+
+.department-section h3 {
+  margin-bottom: 18px;
+  color: #1a2145;
+}
+
+.department-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+}
+
+.department-card {
+  padding: 14px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.department-card span {
+  color: #555;
+  font-size: 14px;
+}
+
+.department-card h2 {
+  margin-top: 8px;
+  color: #1a2145;
+}
+
+/* Job Openings Tab */
+
+.job-openings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.opening-card {
+  background: #f2f3f7;
+  border-radius: 12px;
+  padding: 18px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.opening-card h3 {
+  margin-bottom: 6px;
+  color: #1a2145;
+}
+
+.opening-info {
+  text-align: right;
+}
+
+.opening-info p {
+  margin: 0;
+  color: #555;
+}
+
+.opening-info span {
+  color: #999;
+  font-size: 13px;
+}
+
+/* Tablet */
+
+@media (max-width: 768px) {
+  .recruitment-container {
+    padding: 20px;
+  }
+
+  .opening-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .opening-info {
+    text-align: left;
+  }
+
+  .page-title {
+    font-size: 28px;
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 480px) {
+  .recruitment-container {
+    padding: 16px;
+  }
+
+  .tabs {
+    gap: 12px;
+  }
+
+  .tab-btn {
+    font-size: 14px;
+  }
+
+  .active-card {
+    width: 100%;
+  }
+
+  .job-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .department-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .page-title {
+    font-size: 24px;
+  }
+}

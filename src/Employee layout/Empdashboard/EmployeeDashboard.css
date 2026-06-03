@@ -1,0 +1,534 @@
+/*
+ * EmployeeDashboard.css
+ * =====================
+ * HRConnect — Employee User Dashboard Styles
+ *
+ * PURPOSE:
+ *   All visual styles for EmployeeDashboard.jsx.
+ *   Faithfully reproduces the uploaded UI screenshot —
+ *   lavender ID card, white info cards, coloured bullets,
+ *   and the overall light blue-grey page background.
+ *
+ * FILE ORGANISATION:
+ *   1.  CSS Custom Properties   — design tokens (colours, spacing, fonts)
+ *   2.  Base / Reset            — box-sizing, body, list defaults
+ *   3.  App shell               — outer flex wrapper (sidebar + main)
+ *   4.  Dashboard root          — .emp-dashboard layout + entrance animation
+ *   5.  Page header             — title + date line
+ *   6.  Employee ID card        — lavender tile with avatar + details
+ *   7.  Bottom row              — two-column grid (announcements + events)
+ *   8.  Info cards              — shared white card styles
+ *   9.  Announcement items      — list rows with bullet + text + time
+ *  10.  Event items             — list rows with bullet + label
+ *  11.  Bullet colours          — per-colour dot variants
+ *  12.  Entrance animation      — slide-up + fade-in keyframes
+ *  13.  Responsive              — tablet + mobile breakpoints
+ *
+ * BEM NAMING:
+ *   Block:    .emp-dashboard  .emp-card  .info-card
+ *   Element:  .emp-card__avatar-wrap  .info-card__title
+ *   Modifier: .emp-dashboard--visible  .dot--red
+ */
+
+
+/* ═══════════════════════════════════════════════════════
+   1. CSS CUSTOM PROPERTIES — Design Tokens
+   ───────────────────────────────────────────────────────
+   All colours, spacing, radii, shadows, and font stacks
+   are defined here as variables. Changing one token
+   updates every component that uses it automatically.
+═══════════════════════════════════════════════════════ */
+:root {
+  /* ── Page background ── */
+  --bg-page:          #EAECF5;   /* light blue-grey behind all cards */
+
+  /* ── Card backgrounds ── */
+  --bg-id-card:       #D9DCF0;   /* lavender tint for the Employee ID tile */
+  --bg-info-card:     #FFFFFF;   /* pure white for announcement/events cards */
+
+  /* ── Text colours ── */
+  --text-heading:     #1B2D7A;   /* deep navy for "Employee ID" and card title */
+  --text-label:       #1B2559;   /* dark navy for field labels (bold) */
+  --text-value:       #4A4A4A;   /* dark grey for field values */
+  --text-sub:         #8A92B2;   /* muted blue-grey for timestamps */
+  --text-date:        #6B7280;   /* medium grey for the date subtitle */
+  --text-event:       #2D2D2D;   /* near-black for event labels */
+
+  /* ── Borders ── */
+  --border-card:      rgba(0, 0, 0, 0.06);  /* very subtle card edge */
+
+  /* ── Shadows ── */
+  --shadow-id-card:   0 4px 20px rgba(27, 45, 122, 0.10);
+  --shadow-info-card: 0 2px 12px rgba(0, 0, 0, 0.06);
+
+  /* ── Spacing scale (use multiples of 4px) ── */
+  --space-xs:   4px;
+  --space-sm:   8px;
+  --space-md:  16px;
+  --space-lg:  24px;
+  --space-xl:  32px;
+  --space-2xl: 48px;
+
+  /* ── Border radii ── */
+  --radius-sm:  8px;
+  --radius-md: 16px;   /* ID card and info cards */
+  --radius-lg: 20px;   /* ID card outer radius */
+
+  /* ── Typography ── */
+  /* DM Sans — clean geometric sans-serif for body copy */
+  /* DM Serif Display — elegant serif for the main heading */
+  --font-body:    'DM Sans', 'Segoe UI', sans-serif;
+  --font-display: 'DM Serif Display', Georgia, serif;
+
+  /* ── Bullet dot sizes ── */
+  --dot-size: 10px;
+
+  /* ── Animation ── */
+  --anim-duration:  400ms;
+  --anim-easing:    cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   2. BASE / RESET
+   ───────────────────────────────────────────────────────
+   Minimal normalisation so the component looks the same
+   across browsers. box-sizing: border-box means padding
+   and border do NOT add to an element's declared width.
+═══════════════════════════════════════════════════════ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin:     0;
+  padding:    0;
+}
+
+body {
+  font-family:               var(--font-body);
+  background:                var(--bg-page);
+  -webkit-font-smoothing:    antialiased;   /* crisper text on macOS / Chrome */
+  -moz-osx-font-smoothing:   grayscale;
+}
+
+/* Remove default list bullets and indentation */
+ul, ol {
+  list-style: none;
+}
+
+/* Remove bold + margin from definition terms */
+dt {
+  font-weight: normal;
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   3. APP SHELL (reference — sidebar not in scope)
+   ───────────────────────────────────────────────────────
+   Wrap both the sidebar and this component in .app-shell
+   in your root App.jsx. The sidebar takes a fixed 280px
+   column; the dashboard fills the rest.
+═══════════════════════════════════════════════════════ */
+.app-shell {
+  display:         flex;          /* side-by-side: sidebar | main */
+  min-height:      100vh;
+  background:      var(--bg-page);
+}
+
+/* The sidebar occupies a fixed width — adjust to match your sidebar */
+/* .sidebar { width: 280px; flex-shrink: 0; } */
+
+
+/* ═══════════════════════════════════════════════════════
+   4. DASHBOARD ROOT — .emp-dashboard
+   ───────────────────────────────────────────────────────
+   Fills the remaining horizontal space beside the sidebar.
+   Children (header, ID card, bottom row) stack vertically
+   with consistent gap spacing.
+═══════════════════════════════════════════════════════ */
+.emp-dashboard {
+  flex:            1;              /* grow to fill available width */
+  padding:         var(--space-xl) var(--space-2xl);
+  display:         flex;
+  flex-direction:  column;
+  gap:             var(--space-xl);  /* vertical gap between sections */
+  min-height:      100vh;
+  background:      var(--bg-page);
+
+  /*
+   * Entrance animation — initial hidden state.
+   * The --visible modifier class triggers the transition.
+   */
+  opacity:         0;
+  transform:       translateY(16px);
+  transition:
+    opacity   var(--anim-duration) var(--anim-easing),
+    transform var(--anim-duration) var(--anim-easing);
+}
+
+/*
+ * When JS adds .emp-dashboard--visible (after 80ms mount delay),
+ * the content fades in and slides up into position.
+ */
+.emp-dashboard--visible {
+  opacity:   1;
+  transform: translateY(0);
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   5. PAGE HEADER — Title + Date
+   ───────────────────────────────────────────────────────
+   "Employee ID" in bold navy, "Wednesday, May 09, 2026"
+   in muted grey below it.
+═══════════════════════════════════════════════════════ */
+.emp-dashboard__header {
+  display:        flex;
+  flex-direction: column;
+  gap:            var(--space-xs);
+}
+
+/* "Employee ID" — large bold heading matching screenshot */
+.emp-dashboard__title {
+  font-family:    var(--font-display);
+  font-size:      30px;
+  font-weight:    700;
+  color:          var(--text-heading);
+  letter-spacing: -0.02em;   /* tighter tracking for display sizes */
+  line-height:    1.1;
+}
+
+/* "Wednesday, May 09, 2026" — muted subtitle beneath the title */
+.emp-dashboard__date {
+  font-size:   14px;
+  font-weight: 400;
+  color:       var(--text-date);
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   6. EMPLOYEE ID CARD — .emp-card
+   ───────────────────────────────────────────────────────
+   Large lavender tile. Two-column flex:
+     Left  — avatar SVG wrapped in a circle area
+     Right — definition list with Name / ID / Department
+═══════════════════════════════════════════════════════ */
+.emp-card {
+  background:    var(--bg-id-card);
+  border-radius: var(--radius-lg);
+  padding:       var(--space-xl) var(--space-2xl);
+  display:       flex;
+  align-items:   center;
+  gap:           var(--space-2xl);   /* space between avatar and text block */
+  box-shadow:    var(--shadow-id-card);
+
+  /*
+   * Staggered animation delay — this card appears slightly
+   * after the header for a sequential reveal effect.
+   */
+  animation: slideUp var(--anim-duration) var(--anim-easing) 100ms both;
+}
+
+/* ── Avatar column ── */
+.emp-card__avatar-wrap {
+  flex-shrink:     0;    /* avatar never shrinks even on narrow screens */
+  width:           130px;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+}
+
+/* The SVG icon fills its container's width */
+.emp-card__avatar-svg {
+  width:  100%;
+  height: auto;
+}
+
+/* ── Details column — definition list ── */
+.emp-card__details {
+  display:        flex;
+  flex-direction: column;
+  gap:            var(--space-lg);   /* vertical gap between each detail row */
+}
+
+/* A single label + value pair in the details column */
+.emp-card__row {
+  display:     flex;
+  align-items: baseline;   /* align text baselines for mixed font sizes */
+  gap:         var(--space-md);
+}
+
+/* "Employee Name:" / "Employee ID:" / "Employee Dept :" labels */
+.emp-card__field-label {
+  font-size:   17px;
+  font-weight: 700;
+  color:       var(--text-label);
+  white-space: nowrap;   /* label never wraps to a second line */
+  min-width:   175px;    /* right-aligns all values consistently */
+}
+
+/* The actual value — "Ram", "EMDS101", "Design" */
+.emp-card__field-value {
+  font-size:   17px;
+  font-weight: 400;
+  color:       var(--text-value);
+}
+
+/* Monospace variant for the ID code (EMDS101) — makes digits fixed-width */
+.emp-card__field-value--mono {
+  font-family: 'DM Mono', 'Courier New', monospace;
+  letter-spacing: 0.04em;
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   7. BOTTOM ROW — Two-column grid
+   ───────────────────────────────────────────────────────
+   Announcements card on the left, Events card on the right.
+   Equal-width columns with a gap between them.
+═══════════════════════════════════════════════════════ */
+.emp-dashboard__bottom {
+  display:               grid;
+  grid-template-columns: 1fr 1fr;   /* two equal columns */
+  gap:                   var(--space-lg);
+  align-items:           start;     /* cards don't stretch to match heights */
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   8. INFO CARDS — shared styles
+   ───────────────────────────────────────────────────────
+   .info-card is reused by both Announcements and Events.
+   White rounded tile with consistent internal padding.
+═══════════════════════════════════════════════════════ */
+.info-card {
+  background:    var(--bg-info-card);
+  border-radius: var(--radius-md);
+  padding:       var(--space-lg) var(--space-xl);
+  box-shadow:    var(--shadow-info-card);
+  border:        1px solid var(--border-card);
+
+  /* Staggered animation — cards appear after the ID card */
+  animation: slideUp var(--anim-duration) var(--anim-easing) 200ms both;
+}
+
+/* "Recent Announcements" / "Upcoming Events" section heading */
+.info-card__title {
+  font-size:     15px;
+  font-weight:   700;
+  color:         var(--text-label);
+  margin-bottom: var(--space-lg);
+  letter-spacing: -0.01em;
+}
+
+/* List container — stack items with consistent gap */
+.info-card__list {
+  display:        flex;
+  flex-direction: column;
+  gap:            var(--space-lg);   /* vertical breathing room between items */
+}
+
+/* Events list needs slightly more gap since each item is simpler */
+.info-card__list--events {
+  gap: var(--space-xl);
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   9. ANNOUNCEMENT ITEMS
+   ───────────────────────────────────────────────────────
+   Each row: [bullet] [text] [time]
+   Text and time are stacked in a flex column.
+═══════════════════════════════════════════════════════ */
+.announce-item {
+  display:     flex;
+  align-items: flex-start;
+  gap:         var(--space-md);
+}
+
+/* The coloured circle bullet — size from --dot-size token */
+/* Colour is applied by modifier classes — see section 11 */
+.bullet {
+  width:       var(--dot-size);
+  height:      var(--dot-size);
+  border-radius: 50%;       /* circle shape */
+  flex-shrink: 0;           /* never squash the dot */
+  margin-top:  4px;         /* optical alignment with the first text line */
+}
+
+/* Text block: announcement copy + timestamp stacked vertically */
+.announce-item__body {
+  display:        flex;
+  flex-direction: column;
+  gap:            2px;
+}
+
+/* Main announcement text */
+.announce-item__text {
+  font-size:   14px;
+  font-weight: 500;
+  color:       var(--text-label);
+  line-height: 1.4;
+}
+
+/* Muted timestamp below the text ("10:00 AM", "1 day ago") */
+.announce-item__time {
+  font-size:   12px;
+  font-weight: 400;
+  color:       var(--text-sub);
+}
+
+
+/* ═══════════════════════════════════════════════════════
+  10. EVENT ITEMS
+   ───────────────────────────────────────────────────────
+   Simpler than announcement items — just [bullet] [label].
+   No timestamp shown in the screenshot.
+═══════════════════════════════════════════════════════ */
+.event-item {
+  display:     flex;
+  align-items: center;    /* vertically centre bullet with single-line label */
+  gap:         var(--space-md);
+}
+
+/* Event label text */
+.event-item__label {
+  font-size:   14px;
+  font-weight: 500;
+  color:       var(--text-event);
+  line-height: 1.3;
+}
+
+
+/* ═══════════════════════════════════════════════════════
+  11. BULLET COLOURS — .dot--{colour}
+   ───────────────────────────────────────────────────────
+   Each announcement and event type gets its own dot colour.
+   The class names are assigned in the data arrays at the
+   top of EmployeeDashboard.jsx and applied to <span> elements.
+═══════════════════════════════════════════════════════ */
+
+/* Red — salary credited notification */
+.dot--red    { background-color: #EF4444; }
+
+/* Yellow — leave approved notification */
+.dot--yellow { background-color: #EAB308; }
+
+/* Green — job posting notification */
+.dot--green  { background-color: #22C55E; }
+
+/* Blue — Employee Day event */
+.dot--blue   { background-color: #3B82F6; }
+
+/* Pink/Magenta — New Year event */
+.dot--pink   { background-color: #EC4899; }
+
+/* Orange — Pongal Celebration event */
+.dot--orange { background-color: #F97316; }
+
+
+/* ═══════════════════════════════════════════════════════
+  12. ENTRANCE ANIMATION — @keyframes slideUp
+   ───────────────────────────────────────────────────────
+   Used by .emp-card and .info-card for their staggered
+   reveal. Elements start slightly below and invisible,
+   then slide up and fade in.
+
+   The main .emp-dashboard wrapper uses a CSS transition
+   (not keyframes) because JS toggles the class;
+   child cards use keyframes with animation-delay for
+   guaranteed stagger without needing a JS timer.
+═══════════════════════════════════════════════════════ */
+@keyframes slideUp {
+  from {
+    opacity:   0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity:   1;
+    transform: translateY(0);
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════
+  13. RESPONSIVE — Tablet & Mobile Breakpoints
+   ───────────────────────────────────────────────────────
+   The dashboard is designed for desktop (1024px+).
+   Below that, columns collapse and spacing tightens.
+═══════════════════════════════════════════════════════ */
+
+/* ── Tablet: 768px – 1023px ── */
+@media (max-width: 1023px) {
+  .emp-dashboard {
+    padding: var(--space-lg) var(--space-xl);
+  }
+
+  /* Tighten up the ID card on tablet */
+  .emp-card {
+    padding: var(--space-lg) var(--space-xl);
+    gap:     var(--space-xl);
+  }
+
+  /* Shrink avatar slightly */
+  .emp-card__avatar-wrap {
+    width: 100px;
+  }
+
+  /* Stack announcements and events vertically on tablet */
+  .emp-dashboard__bottom {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Mobile: up to 767px ── */
+@media (max-width: 767px) {
+  .emp-dashboard {
+    padding: var(--space-md) var(--space-lg);
+    gap:     var(--space-lg);
+  }
+
+  /* ID card: stack avatar above text on mobile */
+  .emp-card {
+    flex-direction: column;
+    align-items:    flex-start;
+    padding:        var(--space-lg);
+    gap:            var(--space-lg);
+  }
+
+  /* Full-width avatar on mobile */
+  .emp-card__avatar-wrap {
+    width: 80px;
+  }
+
+  /* Label + value stack vertically on narrow screens */
+  .emp-card__row {
+    flex-direction: column;
+    gap:            var(--space-xs);
+  }
+
+  /* Smaller label min-width on mobile */
+  .emp-card__field-label {
+    font-size: 14px;
+    min-width: unset;
+  }
+
+  .emp-card__field-value {
+    font-size: 14px;
+  }
+
+  /* Title sizes down on mobile */
+  .emp-dashboard__title {
+    font-size: 24px;
+  }
+
+  /* Bottom cards: single column on mobile (already 1fr from tablet) */
+  .emp-dashboard__bottom {
+    grid-template-columns: 1fr;
+  }
+
+  /* Reduce padding on info cards */
+  .info-card {
+    padding: var(--space-md) var(--space-lg);
+  }
+}

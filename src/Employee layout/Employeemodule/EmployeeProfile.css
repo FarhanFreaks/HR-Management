@@ -1,0 +1,689 @@
+/*
+ * EmployeeProfile.css
+ * ===================
+ * HRConnect — Single Employee Profile Page Styles
+ *
+ * FILE SECTIONS:
+ *   1.  CSS Custom Properties  — all design tokens
+ *   2.  Base / Reset           — box-sizing, defaults
+ *   3.  Page root (.ep)        — layout wrapper + entrance animation
+ *   4.  Page header            — title + back button
+ *   5.  Profile hero card      — avatar, name, status, edit button
+ *   6.  Status badge           — Active / On Leave / Inactive pill
+ *   7.  Edit button            — outline CTA
+ *   8.  Detail grid            — 2-column card layout
+ *   9.  Detail card            — shared white card styles
+ *  10.  Info rows              — icon + label + value pairs
+ *  11.  Leave bars             — progress bar rows
+ *  12.  Leave bar fill colours — blue / red / amber variants
+ *  13.  Skills pills           — tag chips for skill list
+ *  14.  Activity list          — feed of recent events
+ *  15.  Activity dot colours   — coloured bullet variants
+ *  16.  Animations             — slideUp, fadeIn keyframes
+ *  17.  Responsive             — tablet + mobile breakpoints
+ */
+
+
+/* ═══════════════════════════════════════════════════
+   1. CSS CUSTOM PROPERTIES
+   ───────────────────────────────────────────────────
+   All colours, spacing, radii, and font stacks live
+   here. Change once → updates everywhere.
+═══════════════════════════════════════════════════ */
+:root {
+  /* ── Surfaces ── */
+  --bg-page:        #EAECF5;   /* lavender-grey page background */
+  --bg-card:        #FFFFFF;   /* white for all detail cards */
+  --bg-hero:        #FFFFFF;   /* hero card background */
+
+  /* ── Brand ── */
+  --navy:           #1B2559;   /* headings, labels */
+  --blue:           #3B5BDB;   /* primary accent — buttons, active elements */
+  --blue-lt:        #EEF2FF;   /* light tint for skill pills, hover states */
+
+  /* ── Text ── */
+  --text-primary:   #1B2559;
+  --text-secondary: #64748B;
+  --text-muted:     #94A3B8;
+
+  /* ── Status colours ── */
+  --active-bg:      #DCFCE7;
+  --active-color:   #166534;
+  --active-dot:     #22C55E;
+
+  /* ── Leave bar fill colours ── */
+  --fill-blue:      #3B5BDB;
+  --fill-red:       #EF4444;
+  --fill-amber:     #F59E0B;
+
+  /* ── Activity dot colours ── */
+  --dot-green:      #22C55E;
+  --dot-blue:       #3B82F6;
+  --dot-amber:      #EAB308;
+  --dot-purple:     #A855F7;
+
+  /* ── Borders & shadows ── */
+  --border:         #E2E8F0;
+  --shadow-sm:      0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md:      0 4px 16px rgba(0,0,0,0.08);
+  --shadow-hero:    0 2px 20px rgba(27,37,89,0.10);
+
+  /* ── Spacing ── */
+  --sp-1:  4px;
+  --sp-2:  8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+
+  /* ── Radii ── */
+  --radius-sm:  6px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+
+  /* ── Typography ── */
+  --font:      'DM Sans', 'Segoe UI', sans-serif;
+  --font-mono: 'DM Mono', 'Courier New', monospace;
+
+  /* ── Transitions ── */
+  --ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+
+/* ═══════════════════════════════════════════════════
+   2. BASE / RESET
+═══════════════════════════════════════════════════ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;   /* padding + border included in widths */
+  margin:  0;
+  padding: 0;
+}
+
+body {
+  font-family:            var(--font);
+  background:             var(--bg-page);
+  color:                  var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+ul { list-style: none; }
+
+button {
+  font-family: inherit;
+  cursor:      pointer;
+  border:      none;
+  background:  none;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   3. PAGE ROOT — .ep
+   ───────────────────────────────────────────────────
+   Fills the content area beside the sidebar.
+   All sections (header → hero → grid) stack vertically.
+   Entrance animation: starts opacity 0 + shifted down,
+   transitions to visible when .ep--visible is added by JS.
+═══════════════════════════════════════════════════ */
+.ep {
+  flex:            1;
+  padding:         var(--sp-8);
+  display:         flex;
+  flex-direction:  column;
+  gap:             var(--sp-6);
+  min-height:      100vh;
+  background:      var(--bg-page);
+
+  /* Initial hidden state for entrance animation */
+  opacity:         0;
+  transform:       translateY(14px);
+  transition:
+    opacity   350ms var(--ease),
+    transform 350ms var(--ease);
+}
+
+/* JS adds this class after 80ms mount delay to trigger the animation */
+.ep--visible {
+  opacity:   1;
+  transform: translateY(0);
+}
+
+
+/* ═══════════════════════════════════════════════════
+   4. PAGE HEADER
+   ───────────────────────────────────────────────────
+   "← Back" button on the left, "Employee" title beside it.
+═══════════════════════════════════════════════════ */
+.ep__header {
+  display:     flex;
+  align-items: center;
+  gap:         var(--sp-4);
+}
+
+/* "← Back" ghost button */
+.ep__back {
+  font-size:     13px;
+  font-weight:   500;
+  color:         var(--text-secondary);
+  padding:       6px 12px;
+  border-radius: var(--radius-sm);
+  border:        1px solid var(--border);
+  background:    var(--bg-card);
+  transition:    background 140ms, color 140ms;
+}
+
+.ep__back:hover {
+  background: var(--blue-lt);
+  color:      var(--blue);
+}
+
+/* "Employee" page heading */
+.ep__title {
+  font-size:      24px;
+  font-weight:    700;
+  color:          var(--navy);
+  letter-spacing: -0.02em;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   5. PROFILE HERO CARD
+   ───────────────────────────────────────────────────
+   Large white card showing:
+     [avatar] [name + role + dept/id] ... [status] [edit btn]
+   Flex row — avatar and identity on the left,
+   status + edit button pushed to the far right.
+═══════════════════════════════════════════════════ */
+.hero-card {
+  background:    var(--bg-hero);
+  border:        1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding:       var(--sp-6) var(--sp-8);
+  display:       flex;
+  align-items:   center;
+  gap:           var(--sp-6);
+  box-shadow:    var(--shadow-hero);
+
+  /* Staggered entrance — appears after the header */
+  animation: slideUp 380ms var(--ease) 100ms both;
+}
+
+/* Initials avatar circle — large size in hero */
+.hero-card__avatar {
+  width:           72px;
+  height:          72px;
+  border-radius:   50%;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  font-size:       22px;
+  font-weight:     700;
+  flex-shrink:     0;
+  /* bg + color applied inline from EMPLOYEE data */
+  letter-spacing:  0.03em;
+}
+
+/* Identity text block */
+.hero-card__identity {
+  display:        flex;
+  flex-direction: column;
+  gap:            3px;
+}
+
+/* Full name */
+.hero-card__name {
+  font-size:      22px;
+  font-weight:    700;
+  color:          var(--navy);
+  letter-spacing: -0.01em;
+}
+
+/* Job title */
+.hero-card__role {
+  font-size:   14px;
+  font-weight: 500;
+  color:       var(--text-secondary);
+}
+
+/* Department · ID line */
+.hero-card__dept {
+  font-size:      12px;
+  color:          var(--text-muted);
+  font-family:    var(--font-mono);
+  letter-spacing: 0.02em;
+}
+
+/* Right-side block — status + edit button — pushed to far right */
+.hero-card__right {
+  margin-left:    auto;  /* this is the key: pushes everything to the right */
+  display:        flex;
+  flex-direction: column;
+  align-items:    flex-end;
+  gap:            var(--sp-3);
+}
+
+
+/* ═══════════════════════════════════════════════════
+   6. STATUS BADGE
+   ───────────────────────────────────────────────────
+   Pill with a small coloured dot + text label.
+   .status-badge--active is the only variant needed here
+   (single employee). Add --leave and --inactive if required.
+═══════════════════════════════════════════════════ */
+.status-badge {
+  display:       inline-flex;
+  align-items:   center;
+  gap:           6px;
+  padding:       5px 12px;
+  border-radius: 100px;   /* fully rounded pill */
+  font-size:     12px;
+  font-weight:   600;
+  letter-spacing: 0.02em;
+}
+
+/* Coloured indicator dot inside the badge */
+.status-badge__dot {
+  width:         8px;
+  height:        8px;
+  border-radius: 50%;
+  flex-shrink:   0;
+}
+
+/* Active — green */
+.status-badge--active {
+  background: var(--active-bg);
+  color:      var(--active-color);
+}
+.status-badge--active .status-badge__dot {
+  background: var(--active-dot);
+}
+
+
+/* ═══════════════════════════════════════════════════
+   7. EDIT BUTTON
+   ───────────────────────────────────────────────────
+   Outlined action button in the hero card's right block.
+═══════════════════════════════════════════════════ */
+.btn-edit {
+  font-size:     12px;
+  font-weight:   500;
+  color:         var(--blue);
+  padding:       7px 16px;
+  border-radius: var(--radius-sm);
+  border:        1px solid var(--blue);
+  background:    transparent;
+  transition:    background 140ms, color 140ms;
+}
+
+.btn-edit:hover {
+  background: var(--blue-lt);
+}
+
+
+/* ═══════════════════════════════════════════════════
+   8. DETAIL GRID
+   ───────────────────────────────────────────────────
+   2-column grid of detail cards below the hero.
+   .detail-card--wide spans both columns (e.g. leave bars,
+   activity feed).
+═══════════════════════════════════════════════════ */
+.detail-grid {
+  display:               grid;
+  grid-template-columns: 1fr 1fr;  /* two equal columns */
+  gap:                   var(--sp-5);
+  align-items:           start;    /* cards don't stretch to match height */
+}
+
+
+/* ═══════════════════════════════════════════════════
+   9. DETAIL CARD — shared white tile
+   ───────────────────────────────────────────────────
+   Used by all 5 sub-sections. White background, rounded
+   corners, subtle shadow.
+═══════════════════════════════════════════════════ */
+.detail-card {
+  background:    var(--bg-card);
+  border:        1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding:       var(--sp-5) var(--sp-6);
+  box-shadow:    var(--shadow-sm);
+
+  /* Staggered entrance — appears slightly after hero */
+  animation: slideUp 380ms var(--ease) 200ms both;
+}
+
+/* Wide variant — spans both grid columns */
+.detail-card--wide {
+  grid-column: 1 / -1;   /* -1 means "end of the grid" */
+}
+
+/* Section heading inside each card */
+.detail-card__title {
+  font-size:      13px;
+  font-weight:    600;
+  color:          var(--navy);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom:  var(--sp-4);
+  padding-bottom: var(--sp-3);
+  border-bottom:  1px solid var(--border);
+}
+
+/* Inner wrapper for InfoRow items */
+.detail-card__rows {
+  display:        flex;
+  flex-direction: column;
+  gap:            var(--sp-4);
+}
+
+
+/* ═══════════════════════════════════════════════════
+  10. INFO ROWS — icon + label + value
+   ───────────────────────────────────────────────────
+   Each row: [icon bubble] [label above value]
+═══════════════════════════════════════════════════ */
+.info-row {
+  display:     flex;
+  align-items: center;
+  gap:         var(--sp-3);
+}
+
+/* Emoji icon inside a small rounded square */
+.info-row__icon {
+  width:           34px;
+  height:          34px;
+  border-radius:   var(--radius-sm);
+  background:      #F3F4FB;    /* very light lavender */
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  font-size:       16px;
+  flex-shrink:     0;
+}
+
+/* Label + value stacked */
+.info-row__body {
+  display:        flex;
+  flex-direction: column;
+  gap:            1px;
+}
+
+/* Small muted label — "Email Address", "Phone Number", etc. */
+.info-row__label {
+  font-size:   11px;
+  font-weight: 500;
+  color:       var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Actual data value */
+.info-row__value {
+  font-size:   14px;
+  font-weight: 500;
+  color:       var(--text-primary);
+}
+
+
+/* ═══════════════════════════════════════════════════
+  11. LEAVE BARS — progress bar rows
+   ───────────────────────────────────────────────────
+   Each row: [label + used/total] then [track] then [remaining]
+   The bar fill is animated from 0% → actual % via CSS transition.
+═══════════════════════════════════════════════════ */
+.leave-bars {
+  display:        flex;
+  flex-direction: column;
+  gap:            var(--sp-5);
+}
+
+.leave-row {
+  display:        flex;
+  flex-direction: column;
+  gap:            var(--sp-1);
+}
+
+/* Top meta line: label on left, "X / Y days used" on right */
+.leave-row__meta {
+  display:         flex;
+  justify-content: space-between;
+  align-items:     baseline;
+}
+
+/* "Annual Leave" / "Sick Leave" / "Casual Leave" */
+.leave-row__label {
+  font-size:   13px;
+  font-weight: 600;
+  color:       var(--text-primary);
+}
+
+/* "6 / 18 days used" — muted, right-aligned */
+.leave-row__count {
+  font-size: 12px;
+  color:     var(--text-secondary);
+}
+
+.leave-row__count strong {
+  color:       var(--navy);
+  font-weight: 600;
+}
+
+/* Grey background track — the full bar container */
+.leave-row__track {
+  height:        8px;
+  background:    #E9EEF6;
+  border-radius: 100px;
+  overflow:      hidden;   /* clips the fill to the rounded track */
+}
+
+/* Coloured fill — animates from width:0% to actual % */
+.leave-row__fill {
+  height:        100%;
+  border-radius: 100px;
+  /* Slow ease-out transition for a satisfying reveal */
+  transition:    width 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* "X days remaining" — small muted line below the bar */
+.leave-row__remaining {
+  font-size: 11px;
+  color:     var(--text-muted);
+  text-align: right;
+}
+
+
+/* ═══════════════════════════════════════════════════
+  12. LEAVE BAR FILL COLOURS
+   ───────────────────────────────────────────────────
+   Applied as additional classes on .leave-row__fill.
+   Each leave type gets a distinct colour so they're
+   visually distinct at a glance.
+═══════════════════════════════════════════════════ */
+
+/* Annual leave — navy blue */
+.fill--blue  { background: var(--fill-blue);  }
+
+/* Sick leave — red (signals caution) */
+.fill--red   { background: var(--fill-red);   }
+
+/* Casual leave — amber (neutral/warm) */
+.fill--amber { background: var(--fill-amber); }
+
+
+/* ═══════════════════════════════════════════════════
+  13. SKILLS PILLS
+   ───────────────────────────────────────────────────
+   Flex-wrap container of small tag chips for each skill.
+═══════════════════════════════════════════════════ */
+.skills-wrap {
+  display:   flex;
+  flex-wrap: wrap;
+  gap:       var(--sp-2);
+}
+
+/* Individual skill tag */
+.skill-pill {
+  font-size:     12px;
+  font-weight:   500;
+  color:         var(--blue);
+  background:    var(--blue-lt);
+  padding:       5px 12px;
+  border-radius: 100px;
+  border:        1px solid #C7D2FE;
+  white-space:   nowrap;
+  transition:    background 140ms, color 140ms;
+}
+
+.skill-pill:hover {
+  background: var(--blue);
+  color:      #FFFFFF;
+}
+
+
+/* ═══════════════════════════════════════════════════
+  14. ACTIVITY LIST
+   ───────────────────────────────────────────────────
+   Vertical list of recent activity items.
+   Each item: [coloured dot] [icon + text + timestamp]
+═══════════════════════════════════════════════════ */
+.act-list {
+  display:        flex;
+  flex-direction: column;
+  gap:            var(--sp-4);
+}
+
+.act-item {
+  display:     flex;
+  align-items: flex-start;
+  gap:         var(--sp-3);
+}
+
+/* Coloured circle dot bullet */
+.act-item__dot {
+  width:         10px;
+  height:        10px;
+  border-radius: 50%;
+  flex-shrink:   0;
+  margin-top:    4px;   /* optical alignment with text */
+  /* Colour set by modifier class — section 15 */
+}
+
+/* Text + timestamp block */
+.act-item__body {
+  display:        flex;
+  flex-direction: column;
+  gap:            2px;
+}
+
+/* Activity description line */
+.act-item__text {
+  font-size:   13px;
+  font-weight: 500;
+  color:       var(--text-primary);
+  display:     flex;
+  align-items: center;
+  gap:         var(--sp-2);
+}
+
+/* Emoji icon inside the text */
+.act-item__icon {
+  font-size: 14px;
+}
+
+/* Muted timestamp */
+.act-item__time {
+  font-size: 12px;
+  color:     var(--text-muted);
+}
+
+
+/* ═══════════════════════════════════════════════════
+  15. ACTIVITY DOT COLOURS
+   ───────────────────────────────────────────────────
+   Modifier classes applied to .act-item__dot.
+   Named after their CSS variable for easy reference.
+═══════════════════════════════════════════════════ */
+.dot--green  { background: var(--dot-green);  }  /* leave approved    */
+.dot--blue   { background: var(--dot-blue);   }  /* payslip           */
+.dot--amber  { background: var(--dot-amber);  }  /* profile update    */
+.dot--purple { background: var(--dot-purple); }  /* office check-in   */
+
+
+/* ═══════════════════════════════════════════════════
+  16. ANIMATIONS
+   ───────────────────────────────────────────────────
+   slideUp — used by hero card and detail cards.
+   Cards start 18px below and transparent, then glide up.
+═══════════════════════════════════════════════════ */
+@keyframes slideUp {
+  from {
+    opacity:   0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity:   1;
+    transform: translateY(0);
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════
+  17. RESPONSIVE BREAKPOINTS
+   ───────────────────────────────────────────────────
+   Designed for desktop (≥1024px).
+   Gracefully adapts to tablet and mobile.
+═══════════════════════════════════════════════════ */
+
+/* ── Tablet: 768px – 1023px ── */
+@media (max-width: 1023px) {
+  .ep {
+    padding: var(--sp-6);
+  }
+
+  /* Hero card: tighter on tablet */
+  .hero-card {
+    padding: var(--sp-5) var(--sp-6);
+    gap:     var(--sp-4);
+  }
+
+  /* Detail grid: 1 column on tablet */
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Wide cards no longer need to span — already full width */
+  .detail-card--wide {
+    grid-column: auto;
+  }
+}
+
+/* ── Mobile: up to 767px ── */
+@media (max-width: 767px) {
+  .ep {
+    padding: var(--sp-4);
+    gap:     var(--sp-4);
+  }
+
+  /* Hero: stack avatar above text on mobile */
+  .hero-card {
+    flex-wrap:   wrap;
+    padding:     var(--sp-4) var(--sp-5);
+  }
+
+  .hero-card__right {
+    margin-left:  0;
+    width:        100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items:  center;
+    border-top:   1px solid var(--border);
+    padding-top:  var(--sp-3);
+  }
+
+  .hero-card__name   { font-size: 18px; }
+  .hero-card__avatar { width: 56px; height: 56px; font-size: 18px; }
+
+  .ep__title { font-size: 20px; }
+}
