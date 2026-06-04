@@ -25,9 +25,10 @@ import EmployeeRecruitmentModule from './Employee layout/Emprecruitment/Recruitm
 
 // Public Imports
 import QuickActions from './Login/QuickActions.jsx';
-import AdminLogin from './MarkAttendance/AdminLogin.jsx';
 import EmployeeLogin from './MarkAttendance/EmployeeLogin.jsx';
+import AttendanceMarking from './MarkAttendance/AttendanceMarking.jsx';
 import Login from './Login/Login.jsx';
+
 
 export default function App() {
   const [session, setSession] = useState(null);
@@ -115,8 +116,10 @@ export default function App() {
         {/* Public Routes */}
         <Route path="/" element={<Navigate to="/quick-actions" replace />} />
         <Route path="/quick-actions" element={<QuickActions />} />
-        <Route path="/admin-login" element={<AdminLogin />} />
-        <Route path="/attendancelogin" element={<EmployeeLogin />} />
+        <Route path="/attendance-login" element={<EmployeeLogin />} />
+        <Route path="/attendancelogin" element={<Navigate to="/attendance-login" replace />} />
+        <Route path="/admin-login" element={<Navigate to="/attendance-login" replace />} />
+        <Route path="/mark-attendance" element={<AttendanceMarking />} />
         
         {/* Protected Login Route */}
         <Route 

@@ -1,0 +1,350 @@
+/* Attendance Marking Page Styles */
+.attendance-container {
+  min-height: 100vh;
+  background: #f0f2f8;
+  color: #1b2559;
+  padding: 24px 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+.attendance-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  padding: 20px 40px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.header-content h1 {
+  margin: 0;
+  color: #1b2559;
+  font-size: 28px;
+}
+
+.header-content p {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.logout-btn {
+  padding: 10px 25px;
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.logout-btn:hover {
+  background: #b91c1c;
+  border-color: #b91c1c;
+  color: #ffffff;
+}
+
+.attendance-main {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.attendance-loading {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #f0f2f8;
+  color: #1b2559;
+}
+
+.spinner {
+  border: 4px solid #dbe3f0;
+  border-top: 4px solid #3b5bdb;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Time Card */
+.time-card {
+  background: #ffffff;
+  padding: 40px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.date-display {
+  font-size: 16px;
+  color: #64748b;
+  margin-bottom: 15px;
+  font-weight: 500;
+}
+
+.time-display {
+  font-size: 48px;
+  font-weight: bold;
+  color: #3b5bdb;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 2px;
+}
+
+/* Employee Info Card */
+.employee-info-card {
+  background: #ffffff;
+  padding: 30px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-item label {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+
+.info-item span {
+  color: #1b2559;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Status Card */
+.status-card {
+  background: #ffffff;
+  padding: 30px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.status-card h3 {
+  margin: 0 0 20px;
+  color: #1b2559;
+  font-size: 18px;
+}
+
+.attendance-status {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: #f0f2f8;
+  border-radius: 8px;
+  border-left: 4px solid #3b5bdb;
+}
+
+.status-item label {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-time {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1b2559;
+  font-family: 'Courier New', monospace;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-badge.present {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.no-attendance {
+  text-align: center;
+  color: #64748b;
+  padding: 20px;
+  font-size: 14px;
+}
+
+/* Messages */
+.message {
+  padding: 15px 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.message.success {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.message.error {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.message.info {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.btn-checkin,
+.btn-checkout {
+  padding: 18px 30px;
+  font-size: 16px;
+  font-weight: 700;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.btn-checkin {
+  background: #15803d;
+  color: #ffffff;
+}
+
+.btn-checkin:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: #166534;
+  box-shadow: 0 8px 18px rgba(21, 128, 61, 0.18);
+}
+
+.btn-checkin:disabled,
+.btn-checkin.disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.btn-checkout {
+  background: #b91c1c;
+  color: #ffffff;
+}
+
+.btn-checkout:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: #991b1b;
+  box-shadow: 0 8px 18px rgba(185, 28, 28, 0.18);
+}
+
+.btn-checkout:disabled,
+.btn-checkout.disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Completed Message */
+.completed-message {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .attendance-header {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .header-content h1 {
+    font-size: 22px;
+  }
+
+  .time-card {
+    padding: 30px 20px;
+  }
+
+  .time-display {
+    font-size: 36px;
+  }
+
+  .employee-info-card {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .attendance-status {
+    grid-template-columns: 1fr;
+  }
+
+  .action-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .btn-checkin,
+  .btn-checkout {
+    padding: 15px 20px;
+    font-size: 14px;
+  }
+}

@@ -1,98 +1,163 @@
-import React, { useState } from "react";
-import "./EmployeeLogin.css";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../config/supabaseClient';
+import './EmployeeLogin.css';
+import {
+  clearAttendanceSession,
+  createAttendanceSession,
+  readAttendanceSession,
+  saveAttendanceSession,
+  wasAttendanceLoggedOut,
+} from './attendanceSession';
 
-export default function EmployeeLogin() {
-  const [employeeId, setEmployeeId] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+const EmployeeLogin = () => {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState({ text: '', type: '' });
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    let isMounted = true;
+
+    const bootstrapAttendanceSession = async () => {
+      const storedSession = readAttendanceSession();
+      if (storedSession) {
+        navigate('/mark-attendance');
+        return;
+      }
+
+      if (wasAttendanceLoggedOut()) {
+        return;
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user || !isMounted) return;
+
+      try {
+        const attendanceSession = await createAttendanceSession(session.user);
+        if (!isMounted) return;
+        saveAttendanceSession(attendanceSession);
+        navigate('/mark-attendance');
+      } catch (error) {
+        if (!isMounted) return;
+        clearAttendanceSession();
+        setMessage({ text: `❌ ${error.message}`, type: 'error' });
+      }
+    };
+
+    bootstrapAttendanceSession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [navigate]);
+
+  const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setMessage({ text: '', type: '' });
 
+    try {
+      // 1. Authenticate with Supabase
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    const currentTimeString = new Date().toLocaleString("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "medium",
-    });
+      if (authError) {
+        throw new Error('Invalid email or password');
+      }
 
-   
-    console.log("=== Employee Authentication Payload ===");
-    console.log("Employee ID: ", employeeId);
-    console.log("Password:    ", password);
-    console.log("Logged Time: ", currentTimeString);
-    console.log("=======================================");
+      const sessionData = await createAttendanceSession(authData.user);
+      saveAttendanceSession(sessionData);
 
-    alert(`Login recorded for Employee ID: ${employeeId}\nTimestamp logged to console.`);
-    
-    // Optional: Reset form fields after capturing payload
-    setEmployeeId("");
-    setPassword("");
+      setMessage({ text: '✅ Login successful! Redirecting...', type: 'success' });
+
+      // 5. Redirect to attendance marking page
+      setTimeout(() => {
+        navigate('/mark-attendance');
+      }, 1000);
+    } catch (error) {
+      console.error('Login error:', error);
+      setMessage({
+        text: `❌ ${error.message}`,
+        type: 'error',
+      });
+      
+      clearAttendanceSession();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBackClick = () => {
+    navigate('/quick-actions');
   };
 
   return (
-    <div className="emp-login-container">
-      <div className="emp-login-card">
-        <div className="emp-login-header">
-          <div className="emp-login-avatar" aria-hidden="true">🏢</div>
-          <h1>Workforce Portal</h1>
-          <p>Sign in to record your attendance and access your workspace.</p>
+    <div className="employee-login-container">
+      <div className="employee-login-wrapper">
+        <div className="login-header">
+          <h1>🔐 Employee Attendance</h1>
+          <p>Mark Your Attendance</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="emp-login-form">
-          {/* Employee ID Input */}
-          <div className="emp-form-group">
-            <label htmlFor="employeeId">Employee ID</label>
-            <div className="emp-input-wrapper">
-              <span className="emp-input-icon" aria-hidden="true">🆔</span>
-              <input
-                type="text"
-                id="employeeId"
-                className="emp-form-input"
-                placeholder="e.g., EMP2026-94"
-                value={employeeId}
-                onChange={(e) => setEmployeeId(e.target.value)}
-                required
-                autoComplete="username"
-              />
+        <form className="employee-login-form" onSubmit={handleLogin}>
+          {message.text && (
+            <div className={`message ${message.type}`}>
+              {message.text}
             </div>
+          )}
+
+          <div className="form-group">
+            <label>Email Address</label>
+            <input
+              type="email"
+              placeholder="Enter your work email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              disabled={loading}
+            />
           </div>
 
-          {/* Password Input */}
-          <div className="emp-form-group">
-            <label htmlFor="password">Security Password</label>
-            <div className="emp-input-wrapper">
-              <span className="emp-input-icon" aria-hidden="true">🔒</span>
-              <input
-                type={showPassword ? "text" : "password"}
-                id="password"
-                className="emp-form-input"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-              />
-              <button
-                type="button"
-                className="emp-password-toggle"
-                onClick={() => setShowPassword(!showPassword)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-              >
-                {showPassword ? "👁️" : "🙈"}
-              </button>
-            </div>
+          <div className="form-group">
+            <label>Password</label>
+            <input
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              disabled={loading}
+            />
           </div>
 
-          {/* Submit Action Button */}
-          <button type="submit" className="emp-login-btn">
-            Authenticate & Log In
+          <button
+            type="submit"
+            className="btn-login"
+            disabled={loading}
+          >
+            {loading ? 'Logging In...' : 'Login to Mark Attendance'}
+          </button>
+
+          <button
+            type="button"
+            className="btn-back"
+            onClick={handleBackClick}
+            disabled={loading}
+          >
+            ← Back to Home
           </button>
         </form>
 
-        <footer className="emp-login-footer">
-          <p>Secured Connection. Unauthorized access is strictly prohibited.</p>
-        </footer>
+        <div className="login-footer">
+          <p>Need help? Contact HR Department</p>
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default EmployeeLogin;

@@ -1,82 +1,155 @@
-import { useState } from "react";
-import { ATTENDANCE_RECORDS } from "./mockData";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { supabase } from "@/config/supabaseClient";
 import "./Attendance.css";
 
-export default function Attendance() {
-  const [records, setRecords] = useState(ATTENDANCE_RECORDS);
+export default function AttendanceManagement() {
+  const [records, setRecords] = useState([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  // Feature: Flag an employee for Loss of Pay (LOP)
-  const toggleLOP = (id) => {
-    setRecords((prev) =>
-      prev.map((record) =>
-        record.id === id ? { ...record, lopFlagged: !record.lopFlagged } : record
+  const fetchAttendance = useCallback(async () => {
+    setLoading(true);
+    setErrorMessage("");
+
+    const { data, error } = await supabase
+      .from("attendance")
+      .select(`
+        id,
+        employee_id,
+        date,
+        punch_in,
+        punch_out,
+        status,
+        employees (
+          emp_id,
+          profiles (full_name),
+          departments (name)
+        )
+      `)
+      .order("date", { ascending: false })
+      .order("punch_in", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching attendance:", error.message);
+      setErrorMessage("Unable to load attendance records.");
+      setRecords([]);
+    } else {
+      setRecords(data || []);
+    }
+
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchAttendance();
+
+    const channel = supabase
+      .channel("attendance-management")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "attendance" },
+        fetchAttendance
       )
-    );
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchAttendance]);
+
+  const filteredRecords = useMemo(() => {
+    const searchText = search.trim().toLowerCase();
+
+    return records.filter((record) => {
+      const matchesSearch =
+        !searchText ||
+        record.employees?.profiles?.full_name?.toLowerCase().includes(searchText) ||
+        record.employees?.emp_id?.toLowerCase().includes(searchText) ||
+        record.employee_id?.toLowerCase().includes(searchText);
+
+      const isComplete = Boolean(record.punch_out);
+      const displayStatus = isComplete ? "Completed" : record.status || "Present";
+      const matchesStatus = statusFilter === "All" || displayStatus === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [records, search, statusFilter]);
+
+  const presentCount = records.filter((record) => record.status === "Present").length;
+  const completedCount = records.filter((record) => record.punch_out).length;
+  const activeCount = records.filter((record) => record.punch_in && !record.punch_out).length;
+
+  const formatTime = (isoString) => {
+    if (!isoString) return "--:--";
+    return new Date(isoString).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
-  // Filter logic
-  const filteredRecords = records.filter((record) => {
-    const matchesStatus = statusFilter === "All" || record.status === statusFilter;
-    const matchesSearch = 
-      record.name.toLowerCase().includes(search.toLowerCase()) || 
-      record.empId.toLowerCase().includes(search.toLowerCase());
-    return matchesStatus && matchesSearch;
-  });
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    return new Date(`${dateString}T00:00:00`).toLocaleDateString([], {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    });
+  };
 
-  // Calculate insights
-  const presentCount = records.filter(r => r.status === "Present").length;
-  const absentCount = records.filter(r => r.status === "Absent").length;
-  const lateCount = records.filter(r => r.status === "Late").length;
-  const totalEmployees = records.length;
+  const getEmployeeInitials = (name = "") => {
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return "NA";
+    return parts.slice(0, 2).map((part) => part[0]).join("").toUpperCase();
+  };
+
+  const getDisplayStatus = (record) => {
+    if (record.punch_out) return "Completed";
+    return record.status || "Present";
+  };
 
   return (
     <div className="attendance-module">
-      
-      {/* ── Quick Insights ── */}
       <div className="attendance-stats-row">
         <div className="stat-card">
-          <span className="stat-title">Total Workforce</span>
-          <span className="stat-value">{totalEmployees}</span>
+          <span className="stat-title">Total Logs</span>
+          <span className="stat-value">{records.length}</span>
         </div>
         <div className="stat-card">
           <span className="stat-title" style={{ color: "#15803D" }}>Present</span>
           <span className="stat-value" style={{ color: "#15803D" }}>{presentCount}</span>
         </div>
         <div className="stat-card">
-          <span className="stat-title" style={{ color: "#B91C1C" }}>Absent</span>
-          <span className="stat-value" style={{ color: "#B91C1C" }}>{absentCount}</span>
+          <span className="stat-title" style={{ color: "#B45309" }}>Checked In</span>
+          <span className="stat-value" style={{ color: "#B45309" }}>{activeCount}</span>
         </div>
         <div className="stat-card">
-          <span className="stat-title" style={{ color: "#B45309" }}>Late Check-in</span>
-          <span className="stat-value" style={{ color: "#B45309" }}>{lateCount}</span>
+          <span className="stat-title" style={{ color: "#1D4ED8" }}>Completed</span>
+          <span className="stat-value" style={{ color: "#1D4ED8" }}>{completedCount}</span>
         </div>
       </div>
 
-      {/* ── Main Attendance Table ── */}
       <section className="attendance-card">
         <div className="attendance-card__header">
-          <h2 className="attendance-card__title">Daily Log: May 29, 2026</h2>
+          <h2 className="attendance-card__title">Live Attendance Logs</h2>
           <div className="attendance-controls">
-            <input 
-              type="text" 
-              className="attendance-input" 
-              placeholder="Search ID or Name..." 
+            <input
+              type="text"
+              className="attendance-input"
+              placeholder="Search ID, name, or email..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(event) => setSearch(event.target.value)}
             />
             <select
               className="attendance-select"
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(event) => setStatusFilter(event.target.value)}
             >
               <option value="All">All Statuses</option>
               <option value="Present">Present</option>
-              <option value="Absent">Absent</option>
-              <option value="Late">Late</option>
-              <option value="Half-day">Half-day</option>
+              <option value="Completed">Completed</option>
             </select>
+            <button className="btn-lop" type="button" onClick={fetchAttendance}>
+              Refresh
+            </button>
           </div>
         </div>
 
@@ -86,58 +159,59 @@ export default function Attendance() {
           <span>Check In</span>
           <span>Check Out</span>
           <span>Status</span>
-          <span>HR Action</span>
+          <span>Date</span>
         </div>
 
         <div className="table-scroll">
-          {filteredRecords.length > 0 ? (
-            filteredRecords.map((record) => (
-              <div key={record.id} className="attendance-grid-row">
-                <span style={{ color: "var(--text-secondary)" }}>{record.empId}</span>
-                <div className="emp-info">
-                  <div className="emp-avatar">{record.initials}</div>
-                  <span>{record.name}</span>
-                </div>
-                <span style={{ fontWeight: record.checkIn !== "--:--" ? "600" : "400", color: record.checkIn === "--:--" ? "#94A3B8" : "inherit" }}>
-                  {record.checkIn}
-                </span>
-                <span style={{ color: "var(--text-secondary)" }}>{record.checkOut}</span>
-                
-                {/* Dynamic Status Badge */}
-                <span className="status-badge" style={{ 
-                  background: record.status === "Present" ? "var(--accent-green)" : 
-                              record.status === "Absent" ? "var(--accent-red)" :
-                              record.status === "Late" ? "var(--accent-amber)" : "#FAF5FF",
-                  color: record.status === "Present" ? "#15803D" : 
-                         record.status === "Absent" ? "#B91C1C" : 
-                         record.status === "Late" ? "#B45309" : "#6B21A8"
-                }}>
-                  {record.status}
-                </span>
+          {loading ? (
+            <div className="empty-state">Loading attendance records...</div>
+          ) : errorMessage ? (
+            <div className="empty-state">{errorMessage}</div>
+          ) : filteredRecords.length > 0 ? (
+            filteredRecords.map((record) => {
+              const displayStatus = getDisplayStatus(record);
+              const employeeName = record.employees?.profiles?.full_name || "Unknown Employee";
 
-                {/* HR Action: Flag for LOP */}
-                <div>
-                  {(record.status === "Absent" || record.status === "Half-day" || record.status === "Late") && (
-                    <button 
-                      className="btn-lop" 
-                      style={{
-                        background: record.lopFlagged ? "#B91C1C" : "#FEF2F2",
-                        color: record.lopFlagged ? "white" : "#B91C1C"
-                      }}
-                      onClick={() => toggleLOP(record.id)}
-                    >
-                      {record.lopFlagged ? "✓ LOP Flagged" : "Flag LOP"}
-                    </button>
-                  )}
+              return (
+                <div key={record.id} className="attendance-grid-row">
+                  <span style={{ color: "var(--text-secondary)" }}>
+                    {record.employees?.emp_id || record.employee_id?.slice(0, 8).toUpperCase() || "N/A"}
+                  </span>
+                  <div className="emp-info">
+                    <div className="emp-avatar">{getEmployeeInitials(employeeName)}</div>
+                    <div>
+                      <div>{employeeName}</div>
+                      <div style={{ color: "var(--text-secondary)", fontSize: 12 }}>
+                        {record.employees?.departments?.name || "No department"}
+                      </div>
+                    </div>
+                  </div>
+                  <span style={{ fontWeight: record.punch_in ? "600" : "400" }}>
+                    {formatTime(record.punch_in)}
+                  </span>
+                  <span style={{ color: "var(--text-secondary)" }}>
+                    {formatTime(record.punch_out)}
+                  </span>
+                  <span
+                    className="status-badge"
+                    style={{
+                      background: displayStatus === "Completed" ? "var(--accent-blue, #EFF6FF)" : "var(--accent-green)",
+                      color: displayStatus === "Completed" ? "#1D4ED8" : "#15803D",
+                    }}
+                  >
+                    {displayStatus}
+                  </span>
+                  <span style={{ color: "var(--text-secondary)" }}>
+                    {formatDate(record.date)}
+                  </span>
                 </div>
-              </div>
-            ))
+              );
+            })
           ) : (
             <div className="empty-state">No attendance records found.</div>
           )}
         </div>
       </section>
-
     </div>
   );
 }
