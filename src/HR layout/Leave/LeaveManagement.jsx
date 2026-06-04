@@ -1,9 +1,18 @@
-import { useState } from "react";
-import { LEAVE_REQUESTS, LEAVE_BALANCES } from "./mockData";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { supabase } from "@/config/supabaseClient";
 import "./LeaveManagement.css";
 
+const LEAVE_TYPE_LABELS = {
+  SL: "Short Leave",
+  LL: "Long Leave",
+  ML: "Medical Leave",
+  Casual: "Casual Leave",
+  Sick: "Sick Leave",
+  Earned: "Earned Leave",
+};
+
 function ProgressBar({ used, total, color }) {
-  const pct = Math.round((used / total) * 100);
+  const pct = total > 0 ? Math.round((used / total) * 100) : 0;
   return (
     <div className="progress-container">
       <div className="progress-label">
@@ -17,43 +26,141 @@ function ProgressBar({ used, total, color }) {
 }
 
 export default function LeaveManagement() {
-  const [requests, setRequests] = useState(LEAVE_REQUESTS);
+  const [requests, setRequests] = useState([]);
+  const [balances, setBalances] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [actionLoadingId, setActionLoadingId] = useState(null);
   
-  // ── Filters & Search States ──
-  const [reqStatusFilter, setReqStatusFilter] = useState("pending");
+  // Filters & Search States
+  const [reqStatusFilter, setReqStatusFilter] = useState("Pending"); // Matched DB casing
   const [reqSearch, setReqSearch] = useState("");
   const [deptFilter, setDeptFilter] = useState("All");
   const [balanceSearch, setBalanceSearch] = useState("");
 
-  const handleAction = (id, newStatus) => {
-    setRequests((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r))
-    );
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setErrorMessage("");
+    
+    const { data: reqData, error: reqError } = await supabase
+      .from("leave_requests")
+      .select(`
+        id,
+        employee_id,
+        leave_type,
+        start_date,
+        end_date,
+        total_days,
+        reason,
+        status,
+        applied_on,
+        employees (
+          emp_id,
+          profiles (full_name)
+        )
+      `)
+      .order("applied_on", { ascending: false });
+
+    const { data: balData, error: balError } = await supabase
+      .from("leave_balances")
+      .select(`
+        employee_id, sick_total, sick_used, casual_total, casual_used, earned_total, earned_used,
+        employees (
+          emp_id,
+          departments (name),
+          profiles (full_name)
+        )
+      `);
+
+    if (reqError || balError) {
+      console.error("Error fetching leave data:", reqError || balError);
+      setErrorMessage("Unable to load leave data from Supabase.");
+    }
+
+    setRequests(reqData || []);
+    setBalances(balData || []);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+
+    const channel = supabase
+      .channel("leave-management-requests")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "leave_requests" },
+        fetchData
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchData]);
+
+  const handleAction = async (id, newStatus) => {
+    setActionLoadingId(id);
+
+    const { error } = await supabase
+      .from("leave_requests")
+      .update({ status: newStatus })
+      .eq("id", id);
+      
+    if (!error) {
+      const { error: emailError } = await supabase.functions.invoke("send-leave-status-email", {
+        body: {
+          requestId: id,
+          status: newStatus,
+        },
+      });
+
+      if (emailError) {
+        alert(`Leave request ${newStatus.toLowerCase()}, but email could not be sent: ${emailError.message}`);
+      }
+
+      await fetchData();
+    } else {
+      alert("Error updating leave request: " + error.message);
+    }
+
+    setActionLoadingId(null);
   };
 
   // ── Processing Data ──
-  const filteredRequests = requests.filter((req) => {
+  const filteredRequests = useMemo(() => requests.filter((req) => {
     const matchesStatus = reqStatusFilter === "All" || req.status === reqStatusFilter;
-    const matchesSearch = req.name.toLowerCase().includes(reqSearch.toLowerCase()) || 
-                          req.empId.toLowerCase().includes(reqSearch.toLowerCase());
+    const empName = req.employees?.profiles?.full_name || "";
+    const empId = req.employees?.emp_id || "";
+    const matchesSearch = empName.toLowerCase().includes(reqSearch.toLowerCase()) || 
+                          empId.toLowerCase().includes(reqSearch.toLowerCase()) ||
+                          req.employee_id?.toLowerCase().includes(reqSearch.toLowerCase());
     return matchesStatus && matchesSearch;
-  });
+  }), [requests, reqSearch, reqStatusFilter]);
 
-  const departments = ["All", ...new Set(LEAVE_BALANCES.map((emp) => emp.dept))];
-  const filteredBalances = LEAVE_BALANCES.filter((emp) => {
-    const matchesDept = deptFilter === "All" || emp.dept === deptFilter;
-    const matchesSearch = emp.name.toLowerCase().includes(balanceSearch.toLowerCase()) || 
-                          emp.empId.toLowerCase().includes(balanceSearch.toLowerCase());
+  // Extract unique departments safely
+  const departments = useMemo(
+    () => ["All", ...new Set(balances.map(b => b.employees?.departments?.name).filter(Boolean))],
+    [balances]
+  );
+  
+  const filteredBalances = useMemo(() => balances.filter((emp) => {
+    const deptName = emp.employees?.departments?.name || "Unassigned";
+    const empName = emp.employees?.profiles?.full_name || "";
+    const empId = emp.employees?.emp_id || "";
+    
+    const matchesDept = deptFilter === "All" || deptName === deptFilter;
+    const matchesSearch = empName.toLowerCase().includes(balanceSearch.toLowerCase()) || 
+                          empId.toLowerCase().includes(balanceSearch.toLowerCase());
     return matchesDept && matchesSearch;
-  });
+  }), [balances, balanceSearch, deptFilter]);
 
   // ── Dynamic Quick Stats ──
-  const pendingCount = requests.filter(r => r.status === "pending").length;
-  const approvedCount = requests.filter(r => r.status === "approved").length;
-  // Calculate average casual leave used
-  const avgLeaveUsed = Math.round(
-    LEAVE_BALANCES.reduce((sum, emp) => sum + emp.casual.used, 0) / LEAVE_BALANCES.length
-  );
+  const pendingCount = requests.filter(r => r.status === "Pending").length;
+  const approvedCount = requests.filter(r => r.status === "Approved").length;
+  const avgLeaveUsed = balances.length > 0 
+    ? Math.round(balances.reduce((sum, emp) => sum + (emp.casual_used || 0), 0) / balances.length)
+    : 0;
 
   return (
     <div className="leave-module">
@@ -66,7 +173,7 @@ export default function LeaveManagement() {
           <span className="stat-trend trend-warn">Requires attention today</span>
         </div>
         <div className="stat-card">
-          <span className="stat-title">Approved this Month</span>
+          <span className="stat-title">Total Approved</span>
           <span className="stat-value">{approvedCount}</span>
           <span className="stat-trend trend-good">Everything is up to date</span>
         </div>
@@ -95,9 +202,9 @@ export default function LeaveManagement() {
               onChange={(e) => setReqStatusFilter(e.target.value)}
             >
               <option value="All">All Statuses</option>
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
+              <option value="Pending">Pending</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
             </select>
           </div>
         </div>
@@ -112,41 +219,64 @@ export default function LeaveManagement() {
         </div>
 
         <div className="table-scroll">
-          {filteredRequests.length > 0 ? (
-            filteredRequests.map((req) => (
-              <div key={req.id} className="leave-grid-row" style={{ opacity: req.status !== "pending" ? 0.6 : 1 }}>
-                <span style={{ color: "var(--text-secondary)" }}>{req.empId}</span>
-                <div className="emp-info">
-                  <div className="emp-avatar">{req.initials}</div>
-                  <span>{req.name}</span>
+          {loading ? (
+            <div className="empty-state">Loading leave requests...</div>
+          ) : errorMessage ? (
+            <div className="empty-state">{errorMessage}</div>
+          ) : filteredRequests.length > 0 ? (
+            filteredRequests.map((req) => {
+              const name = req.employees?.profiles?.full_name || "Unknown Employee";
+              const initials = name.substring(0,2).toUpperCase();
+              
+              return (
+                <div key={req.id} className="leave-grid-row" style={{ opacity: req.status !== "Pending" ? 0.6 : 1 }}>
+                  <span style={{ color: "var(--text-secondary)" }}>
+                    {req.employees?.emp_id || req.employee_id?.slice(0, 8).toUpperCase() || "N/A"}
+                  </span>
+                  <div className="emp-info">
+                    <div className="emp-avatar">{initials}</div>
+                    <span>{name}</span>
+                  </div>
+                  <span>{LEAVE_TYPE_LABELS[req.leave_type] || req.leave_type}</span>
+                  <span>{new Date(req.start_date).toLocaleDateString()}</span>
+                  <span>{req.total_days} days</span>
+                  <div className="action-buttons">
+                    {req.status === "Pending" ? (
+                      <>
+                        <button
+                          className="btn-approve"
+                          onClick={() => handleAction(req.id, "Approved")}
+                          disabled={actionLoadingId === req.id}
+                        >
+                          {actionLoadingId === req.id ? "Sending..." : "Approve"}
+                        </button>
+                        <button
+                          className="btn-reject"
+                          onClick={() => handleAction(req.id, "Rejected")}
+                          disabled={actionLoadingId === req.id}
+                        >
+                          {actionLoadingId === req.id ? "Sending..." : "Reject"}
+                        </button>
+                      </>
+                    ) : (
+                      <span className="status-badge" style={{ 
+                        background: req.status === "Approved" ? "var(--accent-green)" : "var(--accent-red)",
+                        color: req.status === "Approved" ? "#15803D" : "#B91C1C"
+                      }}>
+                        {req.status}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <span>{req.leaveType}</span>
-                <span>{req.date}</span>
-                <span>{req.duration}</span>
-                <div className="action-buttons">
-                  {req.status === "pending" ? (
-                    <>
-                      <button className="btn-approve" onClick={() => handleAction(req.id, "approved")}>Approve</button>
-                      <button className="btn-reject" onClick={() => handleAction(req.id, "rejected")}>Reject</button>
-                    </>
-                  ) : (
-                    <span className="status-badge" style={{ 
-                      background: req.status === "approved" ? "var(--accent-green)" : "var(--accent-red)",
-                      color: req.status === "approved" ? "#15803D" : "#B91C1C"
-                    }}>
-                      {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))
+              );
+            })
           ) : (
             <div className="empty-state">No requests match your filters.</div>
           )}
         </div>
       </section>
 
-      
+      {/* ═════════ BALANCE TRACKER ═════════ */}
       <section className="leave-card">
         <div className="leave-card__header">
           <h2 className="leave-card__title">Leave Balance Tracker</h2>
@@ -180,20 +310,30 @@ export default function LeaveManagement() {
         </div>
 
         <div className="table-scroll">
-          {filteredBalances.length > 0 ? (
-            filteredBalances.map((emp) => (
-              <div key={emp.id} className="leave-grid-row">
-                <span style={{ color: "var(--text-secondary)" }}>{emp.empId}</span>
-                <div className="emp-info">
-                  <div className="emp-avatar">{emp.initials}</div>
-                  <span>{emp.name}</span>
+          {loading ? (
+            <div className="empty-state">Loading leave balances...</div>
+          ) : errorMessage ? (
+            <div className="empty-state">{errorMessage}</div>
+          ) : filteredBalances.length > 0 ? (
+            filteredBalances.map((emp) => {
+              const name = emp.employees?.profiles?.full_name || "Unknown Employee";
+              const initials = name.substring(0,2).toUpperCase();
+              const deptName = emp.employees?.departments?.name || "Unassigned";
+
+              return (
+                <div key={emp.employee_id} className="leave-grid-row">
+                  <span style={{ color: "var(--text-secondary)" }}>{emp.employees?.emp_id}</span>
+                  <div className="emp-info">
+                    <div className="emp-avatar">{initials}</div>
+                    <span>{name}</span>
+                  </div>
+                  <ProgressBar used={emp.casual_used} total={emp.casual_total} color="#3B5BDB" />
+                  <ProgressBar used={emp.sick_used} total={emp.sick_total} color="#E24B4A" />
+                  <ProgressBar used={emp.earned_used} total={emp.earned_total} color="#15803D" />
+                  <span style={{ color: "var(--text-secondary)", fontSize: "13px" }}>{deptName}</span>
                 </div>
-                <ProgressBar used={emp.casual.used} total={emp.casual.total} color="#3B5BDB" />
-                <ProgressBar used={emp.sick.used} total={emp.sick.total} color="#E24B4A" />
-                <ProgressBar used={emp.earned.used} total={emp.earned.total} color="#15803D" />
-                <span style={{ color: "var(--text-secondary)", fontSize: "13px" }}>{emp.dept}</span>
-              </div>
-            ))
+              );
+            })
           ) : (
              <div className="empty-state">No employees match your search.</div>
           )}
@@ -202,4 +342,4 @@ export default function LeaveManagement() {
 
     </div>
   );
-} 
+}

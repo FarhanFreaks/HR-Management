@@ -1,13 +1,20 @@
 import { useState, useEffect } from "react";
+import { supabase } from "@/config/supabaseClient";
 import "./Leave.css";
 
+const LEAVE_TYPES = [
+  { value: "Casual", label: "Casual Leave" },
+  { value: "Sick", label: "Sick Leave" },
+  { value: "Earned", label: "Earned Leave" },
+];
 export default function Leave() {
-  const [leaveType, setLeaveType] = useState("SL");
+  const [leaveType, setLeaveType] = useState("Casual");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [numDays, setNumDays] = useState("");
   const [reason, setReason] = useState("");
   const [toast, setToast] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // Auto-calculate number of days
   useEffect(() => {
@@ -16,9 +23,7 @@ export default function Leave() {
       const to = new Date(toDate);
 
       if (!isNaN(from) && !isNaN(to) && to >= from) {
-        const diff =
-          Math.round((to - from) / (1000 * 60 * 60 * 24)) + 1;
-
+        const diff = Math.round((to - from) / (1000 * 60 * 60 * 24)) + 1;
         setNumDays(String(diff));
       } else {
         setNumDays("");
@@ -26,27 +31,56 @@ export default function Leave() {
     }
   }, [fromDate, toDate]);
 
-  const handleSubmit = () => {
-    if (!fromDate || !toDate || !reason.trim()) {
-      alert("Please fill in all required fields.");
+  const handleSubmit = async () => {
+    if (!fromDate || !toDate || !reason.trim() || !numDays) {
+      alert("Please fill in all required fields accurately.");
       return;
     }
 
-    setToast(true);
+    setLoading(true);
 
-    setTimeout(() => setToast(false), 2800);
+    try {
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
 
-    setFromDate("");
-    setToDate("");
-    setNumDays("");
-    setReason("");
-    setLeaveType("SL");
+      if (authError || !user) {
+        throw new Error("Session expired. Please log in again.");
+      }
+
+      const { error } = await supabase.from("leave_requests").insert([
+        {
+          employee_id: user.id,
+          leave_type: leaveType,
+          start_date: fromDate,
+          end_date: toDate,
+          total_days: parseInt(numDays),
+          reason: reason,
+          status: "Pending",
+        },
+      ]);
+
+      if (error) throw error;
+
+      setToast(true);
+      setTimeout(() => setToast(false), 2800);
+
+      setFromDate("");
+      setToDate("");
+      setNumDays("");
+      setReason("");
+      setLeaveType("Casual");
+    } catch (error) {
+      alert("Error submitting leave: " + error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <>
       <div className="app">
-        {/* Main Content */}
         <main className="main">
           <div className="form-wrapper">
             <div className="form-card">
@@ -62,9 +96,11 @@ export default function Leave() {
                       value={leaveType}
                       onChange={(e) => setLeaveType(e.target.value)}
                     >
-                      <option value="SL">SL</option>
-                      <option value="LL">LL</option>
-                      <option value="ML">ML</option>
+                      {LEAVE_TYPES.map((type) => (
+                        <option key={type.value} value={type.value}>
+                          {type.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -78,6 +114,7 @@ export default function Leave() {
                     type="date"
                     className="input input-medium"
                     value={fromDate}
+                    min={new Date().toISOString().split("T")[0]} // Prevent past dates
                     onChange={(e) => setFromDate(e.target.value)}
                   />
                 </div>
@@ -91,7 +128,7 @@ export default function Leave() {
                     type="date"
                     className="input input-medium"
                     value={toDate}
-                    min={fromDate}
+                    min={fromDate || new Date().toISOString().split("T")[0]}
                     onChange={(e) => setToDate(e.target.value)}
                   />
                 </div>
@@ -107,16 +144,13 @@ export default function Leave() {
                     value={numDays}
                     readOnly
                     placeholder="—"
-                    min={1}
                   />
                 </div>
               </div>
 
               {/* Reason */}
               <div className="form-row align-start">
-                <label className="form-label pt-9">
-                  Reason:
-                </label>
+                <label className="form-label pt-9">Reason:</label>
                 <div className="form-control">
                   <textarea
                     className="textarea"
@@ -132,29 +166,23 @@ export default function Leave() {
                 <button
                   className="btn-submit"
                   onClick={handleSubmit}
+                  disabled={loading}
                 >
-                  Submit
+                  {loading ? "Submitting..." : "Submit"}
                 </button>
               </div>
             </div>
 
             {/* Legend */}
             <div className="legend">
-              <span className="legend-item">
-                SL - Short Leave
-              </span>
-              <span className="legend-item">
-                LL - Long Leave
-              </span>
-              <span className="legend-item">
-                ML - Medical Leave
-              </span>
+              <span className="legend-item">Casual - Casual Leave</span>
+              <span className="legend-item">Sick - Sick Leave</span>
+              <span className="legend-item">Earned - Earned Leave</span>
             </div>
           </div>
         </main>
       </div>
 
-      {/* Toast */}
       <div className={`toast${toast ? " show" : ""}`}>
         ✓ Leave request submitted successfully!
       </div>

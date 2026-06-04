@@ -1,0 +1,5 @@
+[functions.send-leave-status-email]
+verify_jwt = false
+
+[functions.send-payroll-payslips]
+verify_jwt = false

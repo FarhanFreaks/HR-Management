@@ -156,7 +156,7 @@
 .table-scroll {
   max-height: 400px; 
   overflow-y: auto;
-  overflow-x: hidden;
+  overflow-x: auto;
 }
 
 .table-scroll::-webkit-scrollbar { width: 14px; }
@@ -172,6 +172,174 @@
   padding: 40px;
   text-align: center;
   color: var(--text-secondary, #64748B);
+}
+
+.payroll-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.payroll-heading {
+  margin: 0;
+  font-size: 22px;
+  color: var(--text-primary, #1B2559);
+}
+
+.payroll-subtitle,
+.drawer-subtitle {
+  margin: 4px 0 0;
+  color: var(--text-secondary, #64748B);
+  font-size: 13px;
+}
+
+.payroll-controls--wrap {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.payroll-year-input {
+  width: 92px;
+}
+
+.payroll-tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid var(--border-color, #E2E8F0);
+}
+
+.payroll-tabs button {
+  border: none;
+  background: transparent;
+  color: var(--text-secondary, #64748B);
+  font-weight: 700;
+  padding: 10px 12px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+
+.payroll-tabs button.active {
+  color: #1D4ED8;
+  border-bottom-color: #1D4ED8;
+}
+
+.payroll-stats-row--wide {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.department-expense-grid {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.department-expense-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-color, #E2E8F0);
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.settings-field {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary, #64748B);
+}
+
+.settings-field input,
+.remarks-input {
+  border: 1px solid var(--border-color, #E2E8F0);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--text-primary, #1B2559);
+  font: inherit;
+}
+
+.settings-label {
+  display: block;
+  margin: 18px 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary, #64748B);
+}
+
+.remarks-input {
+  min-height: 82px;
+  resize: vertical;
+  width: 100%;
+}
+
+.payroll-grid-header--live,
+.payroll-grid-row--live {
+  grid-template-columns: 90px 1.5fr 1fr 1fr 1fr 1fr 110px 120px;
+}
+
+.payroll-grid-row--live {
+  min-width: 980px;
+}
+
+.danger-text,
+.breakdown-item.danger {
+  color: #B91C1C;
+}
+
+.formula-box {
+  display: grid;
+  gap: 6px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 14px;
+  margin: 18px 0;
+  color: #475569;
+  font-size: 13px;
+}
+
+.drawer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.locked-note {
+  color: var(--text-secondary, #64748B);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-success,
+.btn-danger {
+  border: none;
+  border-radius: 8px;
+  padding: 9px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-primary { background: #2563EB; color: #FFFFFF; }
+.btn-secondary { background: #E2E8F0; color: #334155; }
+.btn-success { background: #15803D; color: #FFFFFF; }
+.btn-danger { background: #B91C1C; color: #FFFFFF; }
+
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.btn-success:disabled,
+.btn-danger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 /* ── Export Button ── */
 .btn-export {
