@@ -1,6 +1,6 @@
 import React from "react";
 
-const TABS = ["Overview", "Job openings", "Candidates"];
+const TABS = [ "Job openings", "Candidates"];
 
 const Tabs = ({ activeTab, setActiveTab }) => {
   return (

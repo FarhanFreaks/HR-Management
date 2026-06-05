@@ -1,76 +1,40 @@
 import React from "react";
 
-const candidates = [
-  {
-    rank: 1,
-    initials: "RD",
-    name: "Rohini Das",
-    role: "Product Designer",
-    score: 92,
-    status: "Offer",
-    avatarBg: "#fde68a",
-    avatarText: "#92400e",
-    badgeBg: "#fef9c3",
-    badgeText: "#a16207",
-  },
-  {
-    rank: 2,
-    initials: "SI",
-    name: "Snega Iyer",
-    role: "React Developer",
-    score: 88,
-    status: "Interview",
-    avatarBg: "#bfdbfe",
-    avatarText: "#1e40af",
-    badgeBg: "#eff6ff",
-    badgeText: "#1d4ed8",
-  },
-  {
-    rank: 3,
-    initials: "PR",
-    name: "Pooja Reddy",
-    role: "Data Scientist",
-    score: 81,
-    status: "Hired",
-    avatarBg: "#e9d5ff",
-    avatarText: "#6b21a8",
-    badgeBg: "#f0fdf4",
-    badgeText: "#15803d",
-  },
-];
+const Candidates = ({ candidates = [] }) => {
+  const top3 = [...candidates]
+    .sort((a, b) => (b.score || 0) - (a.score || 0))
+    .slice(0, 3);
 
-const Candidates = () => {
   return (
     <div className="candidates-card">
       <h3>Top Candidates</h3>
       <div className="candidates-list">
-        {candidates.map((c) => (
-          <div className="candidate-row" key={c.rank}>
-            <span className="candidate-rank">#{c.rank}</span>
-            <div
-              className="candidate-avatar"
-              style={{ background: c.avatarBg, color: c.avatarText }}
-            >
-              {c.initials}
+        {top3.map((c, index) => {
+          const bgAvatar = c.avatar_bg || c.avatarBg || "#e9d5ff";
+          const txtAvatar = c.avatar_text || c.avatarText || "#6b21a8";
+          const bgBadge = c.badge_bg || c.badgeBg || "#f0fdf4";
+          const txtBadge = c.badge_text || c.badgeText || "#15803d";
+          const initials = c.initials || (c.name ? c.name.split(" ").map(n => n[0]).join("").toUpperCase() : "??");
+
+          return (
+            <div className="candidate-row" key={c.id}>
+              <span className="candidate-rank">#{index + 1}</span>
+              <div className="candidate-avatar" style={{ background: bgAvatar, color: txtAvatar }}>
+                {initials}
+              </div>
+              <div className="candidate-info">
+                <p className="candidate-name">{c.name}</p>
+                <p className="candidate-role">{c.role}</p>
+              </div>
+              <div className="candidate-score" style={{ background: "#dcfce7", color: "#15803d" }}>
+                {c.score || 0}
+              </div>
+              <div className="candidate-badge" style={{ background: bgBadge, color: txtBadge }}>
+                {c.status || "Screening"}
+              </div>
             </div>
-            <div className="candidate-info">
-              <p className="candidate-name">{c.name}</p>
-              <p className="candidate-role">{c.role}</p>
-            </div>
-            <div
-              className="candidate-score"
-              style={{ background: "#dcfce7", color: "#15803d" }}
-            >
-              {c.score}
-            </div>
-            <div
-              className="candidate-badge"
-              style={{ background: c.badgeBg, color: c.badgeText }}
-            >
-              {c.status}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

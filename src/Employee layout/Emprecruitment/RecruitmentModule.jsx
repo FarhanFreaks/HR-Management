@@ -1,52 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./RecruitmentModule.css";
-
-const jobs = [
-  {
-    id: 1,
-    title: "Senior React Developer",
-    dept: "Engineering",
-    deptColor: "#b8f5c8",
-    deptText: "#1a7a3a",
-    type: "Full-Time (Remote)",
-    posted: "13 May",
-  },
-  {
-    id: 2,
-    title: "Product Designer",
-    dept: "Design",
-    deptColor: "#fbc4c4",
-    deptText: "#a03030",
-    type: "Full-Time (Offline)",
-    posted: "8 May",
-  },
-  {
-    id: 3,
-    title: "Data Scientist",
-    dept: "Analytics",
-    deptColor: "#d9d0f7",
-    deptText: "#5a3aa0",
-    type: "Full-Time (Hyderabad)",
-    posted: "3 May",
-  },
-  {
-    id: 4,
-    title: "HR Specialist",
-    dept: "HR",
-    deptColor: "#c4e3fb",
-    deptText: "#1a5a8a",
-    type: "Full-Time (Chennai)",
-    posted: "1 May",
-  },
-];
-
-const deptCounts = {
-  Engineering: 2,
-  Product: 0,
-  Design: 1,
-  Analytics: 0,
-  HR: 1,
-};
+import { supabase } from "../../config/supabaseClient";
 
 const deptColors = {
   Engineering: "#fde8e8",
@@ -56,12 +10,65 @@ const deptColors = {
   HR: "#dbeafe",
 };
 
-const depts = ["All", "Engineering", "Design", "Analytics", "HR"];
+const deptTextColors = {
+  Engineering: "#a03030",
+  Product: "#1a7a3a",
+  Design: "#a03030",
+  Analytics: "#5a3aa0",
+  HR: "#1a5a8a",
+};
 
 export default function RecruitmentModule() {
   const [tab, setTab] = useState("overview");
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
+
+  const [jobs, setJobs] = useState([]);
+  const [deptCounts, setDeptCounts] = useState({});
+  const [depts, setDepts] = useState(["All"]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchJobs = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('job_openings')
+        .select('*')
+        .in('status', ['Active', 'Open']);
+        
+      if (!error && data) {
+        const formattedJobs = data.map(j => {
+          const postedDate = new Date(j.posted_date);
+          const postedStr = `${postedDate.getDate()} ${postedDate.toLocaleString('default', { month: 'short' })}`;
+          
+          return {
+            id: j.id,
+            title: j.title,
+            dept: j.department,
+            deptColor: deptColors[j.department] || "#f3f4f6", // fallback gray
+            deptText: deptTextColors[j.department] || "#374151",
+            type: `${j.job_type || 'Full-Time'} (${j.work_mode || 'Remote'})`,
+            posted: postedStr
+          };
+        });
+        
+        setJobs(formattedJobs);
+        
+        const counts = {};
+        const uniqueDepts = new Set(["All"]);
+        formattedJobs.forEach(j => {
+          counts[j.dept] = (counts[j.dept] || 0) + 1;
+          uniqueDepts.add(j.dept);
+        });
+        
+        setDeptCounts(counts);
+        setDepts(Array.from(uniqueDepts));
+      }
+      setLoading(false);
+    };
+    
+    fetchJobs();
+  }, []);
 
   const filtered = jobs.filter((j) => {
     const matchSearch = j.title.toLowerCase().includes(search.toLowerCase());
@@ -89,7 +96,7 @@ export default function RecruitmentModule() {
         <>
           <div className="active-card">
             <div className="active-label">Active Openings</div>
-            <div className="active-count">4</div>
+            <div className="active-count">{jobs.length}</div>
             <div className="active-subtitle">Currently Hiring</div>
           </div>
 
@@ -113,29 +120,35 @@ export default function RecruitmentModule() {
           </div>
 
           <div className="job-grid">
-            {filtered.map((job) => (
-              <div className="job-card" key={job.id}>
-                <h3>{job.title}</h3>
+            {loading ? (
+              <p style={{ padding: "20px" }}>Loading active jobs...</p>
+            ) : filtered.length === 0 ? (
+              <p style={{ padding: "20px" }}>No jobs found.</p>
+            ) : (
+              filtered.map((job) => (
+                <div className="job-card" key={job.id}>
+                  <h3>{job.title}</h3>
 
-                <span
-                  className="dept-badge"
-                  style={{
-                    background: job.deptColor,
-                    color: job.deptText,
-                  }}
-                >
-                  {job.dept}
-                </span>
+                  <span
+                    className="dept-badge"
+                    style={{
+                      background: job.deptColor,
+                      color: job.deptText,
+                    }}
+                  >
+                    {job.dept}
+                  </span>
 
-                <p>
-                  <strong>Type:</strong> {job.type}
-                </p>
+                  <p>
+                    <strong>Type:</strong> {job.type}
+                  </p>
 
-                <p>
-                  <strong>Posted:</strong> {job.posted}
-                </p>
-              </div>
-            ))}
+                  <p>
+                    <strong>Posted:</strong> {job.posted}
+                  </p>
+                </div>
+              ))
+            )}
           </div>
 
           <div className="department-section">
@@ -159,7 +172,12 @@ export default function RecruitmentModule() {
 
       {tab === "jobopenings" && (
         <div className="job-openings-list">
-          {jobs.map((job) => (
+          {loading ? (
+            <p style={{ padding: "20px" }}>Loading...</p>
+          ) : jobs.length === 0 ? (
+            <p style={{ padding: "20px" }}>No job openings currently available.</p>
+          ) : (
+            jobs.map((job) => (
             <div className="opening-card" key={job.id}>
               <div>
                 <h3>{job.title}</h3>
@@ -180,7 +198,8 @@ export default function RecruitmentModule() {
                 <span>Posted: {job.posted}</span>
               </div>
             </div>
-          ))}
+            ))
+          )}
         </div>
       )}
     </div>

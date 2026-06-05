@@ -10,18 +10,25 @@ const statusColors = {
 };
 
 const CandidateCard = ({ candidate, onView }) => {
-  const status = statusColors[candidate.status] || statusColors.Screening;
+  const currentStatus = candidate.status || "Screening";
+  const status = statusColors[currentStatus] || statusColors.Screening;
+
+  const bgAvatar = candidate.avatar_bg || candidate.avatarBg || "#bfdbfe";
+  const txtAvatar = candidate.avatar_text || candidate.avatarText || "#1e40af";
+  const dateApplied = candidate.applied_date || candidate.appliedDate || "N/A";
+  const matchScore = candidate.score !== undefined ? candidate.score : 0;
+  const skillsArray = candidate.skills || [];
+
+  const initialsFallback = candidate.initials || (candidate.name ? candidate.name.split(" ").map(n => n[0]).join("").toUpperCase() : "??");
 
   return (
     <div className="cand-card" onClick={() => onView(candidate)}>
-
-      {/* Top */}
       <div className="cand-card-top">
         <div
           className="cand-avatar-lg"
-          style={{ background: candidate.avatarBg, color: candidate.avatarText }}
+          style={{ background: bgAvatar, color: txtAvatar }}
         >
-          {candidate.initials}
+          {initialsFallback}
         </div>
         <div className="cand-card-info">
           <h3 className="cand-card-name">{candidate.name}</h3>
@@ -32,45 +39,41 @@ const CandidateCard = ({ candidate, onView }) => {
           className="cand-status-badge"
           style={{ background: status.bg, color: status.text }}
         >
-          {candidate.status}
+          {currentStatus}
         </div>
       </div>
 
-      {/* Meta */}
       <div className="cand-card-meta">
         <span>🏢 {candidate.department}</span>
         <span>💼 {candidate.experience}</span>
         <span>📍 {candidate.location}</span>
-        <span>📅 Applied: {candidate.appliedDate}</span>
+        <span>📅 Applied: {dateApplied}</span>
       </div>
 
-      {/* Skills */}
       <div className="cand-skills">
-        {candidate.skills.slice(0, 4).map((s) => (
+        {skillsArray.slice(0, 4).map((s) => (
           <span key={s} className="cand-skill-tag">{s}</span>
         ))}
-        {candidate.skills.length > 4 && (
-          <span className="cand-skill-more">+{candidate.skills.length - 4}</span>
+        {skillsArray.length > 4 && (
+          <span className="cand-skill-more">+{skillsArray.length - 4}</span>
         )}
       </div>
 
-      {/* Footer */}
       <div className="cand-card-footer">
         <div className="cand-score-row">
           <span className="cand-score-label">Match Score</span>
           <div className="cand-score-bar-bg">
             <div
               className="cand-score-bar-fill"
-              style={{ width: `${candidate.score}%` }}
+              style={{ width: `${matchScore}%` }}
             />
           </div>
-          <span className="cand-score-value">{candidate.score}</span>
+          <span className="cand-score-value">{matchScore}</span>
         </div>
         <button className="cand-view-btn" onClick={(e) => { e.stopPropagation(); onView(candidate); }}>
           View Profile →
         </button>
       </div>
-
     </div>
   );
 };

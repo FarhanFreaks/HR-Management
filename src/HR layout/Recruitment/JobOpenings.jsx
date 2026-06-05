@@ -1,154 +1,64 @@
 import React, { useState } from "react";
 import JobFilter from "./JobFilter";
 import JobCard from "./JobCard";
+import { supabase } from "../../config/supabaseClient";
 import "./JobOpenings.css";
 
-const INITIAL_JOBS = [
-  {
-    id: 1,
-    title: "Senior React Developer",
-    department: "Engineering",
-    jobType: "Full-time",
-    workMode: "On-site",
-    experience: "3-5 years",
-    openings: 2,
-    salaryMin: 600000,
-    salaryMax: 900000,
-    currency: "INR",
-    deadline: "30 Jun 2026",
-    status: "Active",
-    applicants: 8,
-    hiringManager: "Rakesh",
-  },
-  {
-    id: 2,
-    title: "UI/UX Designer",
-    department: "Design",
-    jobType: "Full-time",
-    workMode: "Hybrid",
-    experience: "1-3 years",
-    openings: 1,
-    salaryMin: 400000,
-    salaryMax: 700000,
-    currency: "INR",
-    deadline: "15 Jul 2026",
-    status: "Active",
-    applicants: 5,
-    hiringManager: "Priya",
-  },
-  {
-    id: 3,
-    title: "Data Scientist",
-    department: "Analytics",
-    jobType: "Full-time",
-    workMode: "Remote",
-    experience: "3-5 years",
-    openings: 1,
-    salaryMin: 700000,
-    salaryMax: 1200000,
-    currency: "INR",
-    deadline: "10 Jul 2026",
-    status: "Active",
-    applicants: 12,
-    hiringManager: "Suresh",
-  },
-  {
-    id: 4,
-    title: "HR Executive",
-    department: "HR",
-    jobType: "Full-time",
-    workMode: "On-site",
-    experience: "0-1 year",
-    openings: 1,
-    salaryMin: 250000,
-    salaryMax: 400000,
-    currency: "INR",
-    deadline: "20 Jun 2026",
-    status: "Active",
-    applicants: 3,
-    hiringManager: "Rakesh",
-  },
-  {
-    id: 5,
-    title: "Node.js Backend Developer",
-    department: "Engineering",
-    jobType: "Contract",
-    workMode: "Remote",
-    experience: "1-3 years",
-    openings: 1,
-    salaryMin: 500000,
-    salaryMax: 800000,
-    currency: "INR",
-    deadline: "05 Jun 2026",
-    status: "Closed",
-    applicants: 15,
-    hiringManager: "Suresh",
-  },
-  {
-    id: 6,
-    title: "Marketing Analyst",
-    department: "Marketing",
-    jobType: "Full-time",
-    workMode: "Hybrid",
-    experience: "1-3 years",
-    openings: 2,
-    salaryMin: 350000,
-    salaryMax: 550000,
-    currency: "INR",
-    deadline: "01 Aug 2026",
-    status: "Draft",
-    applicants: 0,
-    hiringManager: "Meena",
-  },
-];
-
-const JobOpenings = () => {
-  const [jobs, setJobs] = useState(INITIAL_JOBS);
+const JobOpenings = ({ jobOpenings, setJobOpenings }) => {
   const [filters, setFilters] = useState({
-    search: "",
-    department: "All",
-    jobType: "All",
-    workMode: "All",
-    status: "All",
+    search: "", department: "All", jobType: "All", workMode: "All", status: "All",
   });
   const [selectedJob, setSelectedJob] = useState(null);
 
-  // Filter logic
-  const filtered = jobs.filter((j) => {
+  const filtered = jobOpenings.filter((j) => {
     const s = filters.search.toLowerCase();
+    // Normalize fields mapped from backend safely
+    const title = j.title || "";
+    const department = j.department || "";
+    const jobType = j.job_type || j.jobType || "";
+    const workMode = j.work_mode || j.workMode || "";
+    const status = j.status || "";
+
     return (
-      (s === "" || j.title.toLowerCase().includes(s) || j.department.toLowerCase().includes(s)) &&
-      (filters.department === "All" || j.department === filters.department) &&
-      (filters.jobType === "All" || j.jobType === filters.jobType) &&
-      (filters.workMode === "All" || j.workMode === filters.workMode) &&
-      (filters.status === "All" || j.status === filters.status)
+      (s === "" || title.toLowerCase().includes(s) || department.toLowerCase().includes(s)) &&
+      (filters.department === "All" || department === filters.department) &&
+      (filters.jobType === "All" || jobType === filters.jobType) &&
+      (filters.workMode === "All" || workMode === filters.workMode) &&
+      (filters.status === "All" || status === filters.status)
     );
   });
 
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this job?")) {
-      setJobs((prev) => prev.filter((j) => j.id !== id));
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this job from database?")) {
+      try {
+        const { error } = await supabase
+          .from("job_openings")
+          .delete()
+          .eq("id", id);
+
+        if (error) throw error;
+        setJobOpenings((prev) => prev.filter((j) => j.id !== id));
+      } catch (error) {
+        alert("Error executing delete command: " + error.message);
+      }
     }
   };
 
   const handleEdit = (job) => {
-    alert(`Edit job: ${job.title}\n(Connect to your edit form here)`);
+    alert(`Edit job operation: ${job.title}`);
   };
 
   const handleView = (job) => {
     setSelectedJob(job);
   };
 
-  // Stats
-  const total  = jobs.length;
-  const active = jobs.filter((j) => j.status === "Active").length;
-  const closed = jobs.filter((j) => j.status === "Closed").length;
-  const draft  = jobs.filter((j) => j.status === "Draft").length;
+  const total  = jobOpenings.length;
+  const active = jobOpenings.filter((j) => j.status === "Active").length;
+  const closed = jobOpenings.filter((j) => j.status === "Closed").length;
+  const draft  = jobOpenings.filter((j) => j.status === "Draft").length;
 
   return (
     <div className="job-openings-wrapper">
-
-      {/* Stats Row */}
       <div className="job-stats-row">
         <div className="job-stat-card">
           <span className="job-stat-value">{total}</span>
@@ -168,21 +78,25 @@ const JobOpenings = () => {
         </div>
       </div>
 
-      {/* Filter Bar */}
       <JobFilter filters={filters} setFilters={setFilters} />
 
-      {/* Results count */}
       <p className="job-results-count">
         Showing <strong>{filtered.length}</strong> of <strong>{total}</strong> jobs
       </p>
 
-      {/* Job Cards Grid */}
       {filtered.length > 0 ? (
         <div className="job-cards-grid">
           {filtered.map((job) => (
             <JobCard
               key={job.id}
-              job={job}
+              // Normalizing data format for legacy frontend design inside card
+              job={{
+                ...job,
+                jobType: job.job_type || job.jobType,
+                workMode: job.work_mode || job.workMode,
+                salaryMin: job.salary_min || job.salaryMin,
+                salaryMax: job.salary_max || job.salaryMax,
+              }}
               onEdit={handleEdit}
               onDelete={handleDelete}
               onView={handleView}
@@ -197,7 +111,6 @@ const JobOpenings = () => {
         </div>
       )}
 
-      {/* View Modal */}
       {selectedJob && (
         <div className="job-view-overlay" onClick={() => setSelectedJob(null)}>
           <div className="job-view-modal" onClick={(e) => e.stopPropagation()}>
@@ -208,21 +121,20 @@ const JobOpenings = () => {
             <div className="job-view-body">
               <div className="job-view-grid">
                 <div><span>Department</span><strong>{selectedJob.department}</strong></div>
-                <div><span>Job Type</span><strong>{selectedJob.jobType}</strong></div>
-                <div><span>Work Mode</span><strong>{selectedJob.workMode}</strong></div>
+                <div><span>Job Type</span><strong>{selectedJob.job_type || selectedJob.jobType}</strong></div>
+                <div><span>Work Mode</span><strong>{selectedJob.work_mode || selectedJob.workMode}</strong></div>
                 <div><span>Experience</span><strong>{selectedJob.experience}</strong></div>
                 <div><span>Openings</span><strong>{selectedJob.openings}</strong></div>
                 <div><span>Applicants</span><strong>{selectedJob.applicants}</strong></div>
-                <div><span>Salary</span><strong>{selectedJob.currency} {Number(selectedJob.salaryMin).toLocaleString()} – {Number(selectedJob.salaryMax).toLocaleString()}</strong></div>
+                <div><span>Salary</span><strong>{selectedJob.currency} {Number(selectedJob.salary_min || selectedJob.salaryMin).toLocaleString()} – {Number(selectedJob.salary_max || selectedJob.salaryMax).toLocaleString()}</strong></div>
                 <div><span>Deadline</span><strong>{selectedJob.deadline}</strong></div>
                 <div><span>Status</span><strong>{selectedJob.status}</strong></div>
-                <div><span>Hiring Manager</span><strong>{selectedJob.hiringManager}</strong></div>
+                <div><span>Hiring Manager</span><strong>{selectedJob.hiringManager || selectedJob.hiring_manager}</strong></div>
               </div>
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 };

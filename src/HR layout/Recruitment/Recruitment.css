@@ -124,7 +124,7 @@
 }
 
 /* ---- Cards ---- */
-.pipeline-card,
+
 .candidates-card,
 .department-card {
   background: #fff;
@@ -134,7 +134,7 @@
   text-align: left;
 }
 
-.pipeline-card h3,
+
 .candidates-card h3,
 .department-card h3 {
   font-size: 15px;
@@ -144,46 +144,6 @@
   text-align: left;
 }
 
-/* ---- Pipeline ---- */
-.pipeline-list {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.pipeline-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.pipeline-label {
-  width: 90px;
-  font-size: 13px;
-  color: #475569;
-  flex-shrink: 0;
-  text-align: left;
-}
-
-.pipeline-bar-bg {
-  flex: 1;
-  height: 8px;
-  background: #f1f5f9;
-  border-radius: 99px;
-  overflow: hidden;
-}
-
-.pipeline-bar-fill {
-  height: 100%;
-  border-radius: 99px;
-}
-
-.pipeline-count {
-  width: 18px;
-  font-size: 13px;
-  color: #475569;
-  text-align: right;
-}
 
 /* ---- Candidates ---- */
 .candidates-list {

@@ -33,10 +33,21 @@ export default function LoginInfo() {
             .substring(0, 2)
             .toUpperCase() || 'HR';
 
+          let empId = `HR-${shortId}`;
+          const { data: empData } = await supabase
+            .from('employees')
+            .select('emp_id')
+            .eq('id', session.user.id)
+            .single();
+
+          if (empData && empData.emp_id) {
+            empId = empData.emp_id;
+          }
+
           setProfile({
             name: name,
             role: data.role ? data.role.charAt(0).toUpperCase() + data.role.slice(1) : 'HR Admin',
-            id: `HR-${shortId}`,
+            id: empId,
             email: session.user.email || 'No email',
             initials: initials
           });
