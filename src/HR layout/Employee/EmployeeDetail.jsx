@@ -7,6 +7,7 @@ const EmployeeDetail = () => {
   const { id } = useParams(); // Grabs the ID from the URL
   const navigate = useNavigate();
   const [employee, setEmployee] = useState(null);
+  const [stats, setStats] = useState({ leaves: 0, attendancePercent: "0%" });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -31,6 +32,38 @@ const EmployeeDetail = () => {
       console.error("Error fetching employee details:", error.message);
     } else {
       setEmployee(data);
+      
+      const startOfYear = `${new Date().getFullYear()}-01-01`;
+      const { data: leavesData } = await supabase
+        .from("leave_requests")
+        .select("total_days")
+        .eq("employee_id", id)
+        .eq("status", "Approved")
+        .gte("start_date", startOfYear);
+
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const { data: attendanceData } = await supabase
+        .from("attendance")
+        .select("status")
+        .eq("employee_id", id)
+        .gte("date", thirtyDaysAgo.toISOString().split('T')[0]);
+
+      let attendancePercent = "0%";
+      if (attendanceData && attendanceData.length > 0) {
+        const presentCount = attendanceData.filter(a => a.status === "Present").length;
+        attendancePercent = Math.round((presentCount / attendanceData.length) * 100) + "%";
+      }
+
+      let totalLeaves = 0;
+      if (leavesData && leavesData.length > 0) {
+        totalLeaves = leavesData.reduce((sum, record) => sum + (Number(record.total_days) || 1), 0);
+      }
+
+      setStats({
+        leaves: totalLeaves,
+        attendancePercent
+      });
     }
     setLoading(false);
   };
@@ -120,20 +153,20 @@ const EmployeeDetail = () => {
             <span className="stat-title">Base Salary</span>
             {/* Formats the number as currency */}
             <span className="stat-num green">
-              {employee.salary ? `₹${employee.salary.toLocaleString()}` : "TBD"}
+              {(employee.base_salary || employee.salary) ? `₹${Number(employee.base_salary || employee.salary).toLocaleString()}` : "TBD"}
             </span>
             <span className="stat-sub">Per Annum</span>
           </div>
 
           <div className="stat-box">
             <span className="stat-title">Leaves Taken</span>
-            <span className="stat-num purple">4</span>
+            <span className="stat-num purple">{stats.leaves}</span>
             <span className="stat-sub">This Year</span>
           </div>
 
           <div className="stat-box">
             <span className="stat-title">Attendance</span>
-            <span className="stat-num" style={{ color: '#1e88e5' }}>94%</span>
+            <span className="stat-num" style={{ color: '#1e88e5' }}>{stats.attendancePercent}</span>
             <span className="stat-sub">Last 30 Days</span>
           </div>
         </div>

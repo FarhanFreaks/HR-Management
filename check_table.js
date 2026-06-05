@@ -5,9 +5,7 @@ dotenv.config({ path: '.env.local' });
 const supabase = createClient(process.env.VITE_SUPABASE_URL, process.env.VITE_SUPABASE_PUBLISHABLE_KEY);
 
 async function check() {
-  const { data: d1 } = await supabase.from('leave_requests').select('*').limit(1);
-  console.log('leave_requests sample:', d1);
-  const { data: d2 } = await supabase.from('attendance').select('*').limit(1);
-  console.log('attendance sample:', d2);
+  const { data, error } = await supabase.from('designations').select('*').limit(1);
+  console.log('Designations Error:', error ? error.message : 'OK');
 }
 check();

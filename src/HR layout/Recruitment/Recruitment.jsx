@@ -34,14 +34,14 @@ const Recruitment = () => {
       const { data: jobsData, error: jobsError } = await supabase
         .from("job_openings")
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("posted_date", { ascending: false });
       if (jobsError) throw jobsError;
 
       // Fetch Candidates
       const { data: candsData, error: candsError } = await supabase
         .from("candidates")
         .select("*")
-        .order("score", { ascending: false });
+        .order("rating", { ascending: false });
       if (candsError) throw candsError;
 
       setJobOpenings(jobsData || []);
