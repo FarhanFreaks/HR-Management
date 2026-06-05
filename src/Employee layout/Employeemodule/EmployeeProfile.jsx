@@ -29,6 +29,7 @@
 
 import { useState, useEffect } from "react";
 import "./EmployeeProfile.css";
+import { supabase } from "../../config/supabaseClient";
 
 /* ─────────────────────────────────────────────────────
    EMPLOYEE DATA
@@ -171,8 +172,79 @@ export default function EmployeeProfile() {
   const [visible, setVisible]   = useState(false);
   /* Controls leave bar animation — true after 350ms */
   const [barAnim, setBarAnim]   = useState(false);
+  
+  const [employee, setEmployee] = useState(EMPLOYEE);
 
   useEffect(() => {
+    const fetchProfile = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { data } = await supabase
+          .from('employees')
+          .select(`
+            emp_id,
+            status,
+            joined_date,
+            departments (name),
+            profiles (full_name, role)
+          `)
+          .eq('id', session.user.id)
+          .maybeSingle();
+        
+        if (data) {
+          const profile = data.profiles || {};
+          const name = profile.full_name || "Employee";
+          const initials = name
+            .split(' ')
+            .map(n => n[0])
+            .join('')
+            .substring(0, 2)
+            .toUpperCase() || 'EP';
+
+          setEmployee(prev => ({
+            ...prev,
+            id: data.emp_id || "EMP-XXX",
+            name: name,
+            initials: initials,
+            role: profile.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : "Employee",
+            email: session.user.email || prev.email,
+            department: data.departments?.name || "Unassigned",
+            status: data.status || "Active",
+            joined: data.joined_date || prev.joined,
+          }));
+        } else {
+          // Fallback
+          const { data: fallbackData } = await supabase
+            .from('profiles')
+            .select('full_name, role')
+            .eq('id', session.user.id)
+            .maybeSingle();
+
+          if (fallbackData) {
+            const shortId = session.user.id.substring(0, 8).toUpperCase();
+            const name = fallbackData.full_name || "Employee";
+            const initials = name
+              .split(' ')
+              .map(n => n[0])
+              .join('')
+              .substring(0, 2)
+              .toUpperCase() || 'EP';
+
+            setEmployee(prev => ({
+              ...prev,
+              id: `EMP-${shortId}`,
+              name: name,
+              initials: initials,
+              role: fallbackData.role ? fallbackData.role.charAt(0).toUpperCase() + fallbackData.role.slice(1) : "Employee",
+              email: session.user.email || prev.email,
+              department: "Unassigned",
+            }));
+          }
+        }
+      }
+    };
+    fetchProfile();
+
     /* First: fade in the page */
     const t1 = setTimeout(() => setVisible(true), 80);
     /* Then: animate leave bars */
@@ -180,7 +252,7 @@ export default function EmployeeProfile() {
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
-  const { leave, skills, activity } = EMPLOYEE;
+  const { leave, skills, activity } = employee;
 
   return (
     <main className={`ep ${visible ? "ep--visible" : ""}`}>
@@ -198,24 +270,24 @@ export default function EmployeeProfile() {
         {/* Avatar */}
         <div
           className="hero-card__avatar"
-          style={{ background: EMPLOYEE.avatarBg, color: EMPLOYEE.avatarColor }}
-          aria-label={`${EMPLOYEE.name} avatar`}
+          style={{ background: employee.avatarBg, color: employee.avatarColor }}
+          aria-label={`${employee.name} avatar`}
         >
-          {EMPLOYEE.initials}
+          {employee.initials}
         </div>
 
         {/* Name + role */}
         <div className="hero-card__identity">
-          <h2 className="hero-card__name">{EMPLOYEE.name}</h2>
-          <p  className="hero-card__role">{EMPLOYEE.role}</p>
-          <p  className="hero-card__dept">{EMPLOYEE.department} · {EMPLOYEE.id}</p>
+          <h2 className="hero-card__name">{employee.name}</h2>
+          <p  className="hero-card__role">{employee.role}</p>
+          <p  className="hero-card__dept">{employee.department} · {employee.id}</p>
         </div>
 
         {/* Status badge — pushed to the right */}
         <div className="hero-card__right">
           <span className="status-badge status-badge--active">
             <span className="status-badge__dot" aria-hidden="true" />
-            {EMPLOYEE.status}
+            {employee.status}
           </span>
           {/* Edit button */}
         </div>
@@ -229,11 +301,11 @@ export default function EmployeeProfile() {
         <section className="detail-card" aria-label="Personal information">
           <h3 className="detail-card__title">Personal Information</h3>
           <div className="detail-card__rows">
-            <InfoRow icon="🪪" label="Employee ID"    value={EMPLOYEE.id}       />
-            <InfoRow icon="📧" label="Email Address"  value={EMPLOYEE.email}    />
-            <InfoRow icon="📱" label="Phone Number"   value={EMPLOYEE.phone}    />
-            <InfoRow icon="📅" label="Date of Joining" value={EMPLOYEE.joined}  />
-            <InfoRow icon="🎂" label="Birthday"       value={EMPLOYEE.birthday} />
+            <InfoRow icon="🪪" label="Employee ID"    value={employee.id}       />
+            <InfoRow icon="📧" label="Email Address"  value={employee.email}    />
+            <InfoRow icon="📱" label="Phone Number"   value={employee.phone}    />
+            <InfoRow icon="📅" label="Date of Joining" value={employee.joined}  />
+            <InfoRow icon="🎂" label="Birthday"       value={employee.birthday} />
           </div>
         </section>
 
@@ -241,10 +313,10 @@ export default function EmployeeProfile() {
         <section className="detail-card" aria-label="Work information">
           <h3 className="detail-card__title">Work Information</h3>
           <div className="detail-card__rows">
-            <InfoRow icon="🏢" label="Department"      value={EMPLOYEE.department}   />
-            <InfoRow icon="👤" label="Reporting Manager" value={EMPLOYEE.manager}    />
-            <InfoRow icon="⏱️" label="Employment Type"  value={EMPLOYEE.employeeType} />
-            <InfoRow icon="📍" label="Location"         value={EMPLOYEE.location}    />
+            <InfoRow icon="🏢" label="Department"      value={employee.department}   />
+            <InfoRow icon="👤" label="Reporting Manager" value={employee.manager}    />
+            <InfoRow icon="⏱️" label="Employment Type"  value={employee.employeeType} />
+            <InfoRow icon="📍" label="Location"         value={employee.location}    />
           </div>
         </section>
 

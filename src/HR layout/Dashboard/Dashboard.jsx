@@ -1,26 +1,6 @@
 import { useState, useEffect } from "react";
 import "./Dashboard.css";
-
-const TOP_METRICS = [
-  { id: "employees", icon: "👥", label: "Total employees", value: "150", sub: "Across all departments", accent: "blue" },
-  { id: "active", icon: "✅", label: "Active", value: "120", sub: "75% of workforce", accent: "green" },
-  { id: "leave", icon: "✈️", label: "On leave", value: "20", sub: "Currently away", accent: "red" },
-  { id: "payroll", icon: "₹", label: "Monthly payroll", value: "₹1cr", sub: "Total compensation", accent: "amber" },
-];
-
-const SECONDARY_METRICS = [
-  { id: "positions", icon: "📋", label: "Open positions", value: "4", sub: "Actively hiring", accent: "teal" },
-  { id: "leaves", icon: "🗓️", label: "Pending leaves", value: "8", sub: "Awaiting approval", accent: "purple" },
-];
-
-const DEPARTMENTS = [
-  { name: "Engineering", count: 45, pct: 100, color: "#E24B4A" },
-  { name: "Product",     count: 20, pct: 44,  color: "#639922" },
-  { name: "Design",      count: 15, pct: 33,  color: "#E24B4A" },
-  { name: "Analytics",   count: 20, pct: 44,  color: "#639922" },
-  { name: "HR",          count: 15, pct: 33,  color: "#E24B4A" },
-  { name: "Marketing",   count: 35, pct: 78,  color: "#534AB7" },
-];
+import { supabase } from "../../config/supabaseClient";
 
 function getTodayString() {
   return new Date().toLocaleDateString("en-IN", {
@@ -49,7 +29,7 @@ function MetricCard({ icon, label, value, sub, accent, animate, style }) {
   );
 }
 
-function DeptBar({ name, count, pct, color, delay }) {
+function DeptBar({ name, count, pct, color, delay, maxCount }) {
   const [filled, setFilled] = useState(false);
 
   useEffect(() => {
@@ -60,7 +40,7 @@ function DeptBar({ name, count, pct, color, delay }) {
   return (
     <div className="dept-bar">
       <span className="dept-bar__name">{name}</span>
-      <div className="dept-bar__track" role="progressbar" aria-valuenow={count} aria-valuemax={45}>
+      <div className="dept-bar__track" role="progressbar" aria-valuenow={count} aria-valuemax={maxCount || 45}>
         <div
           className="dept-bar__fill"
           style={{
@@ -91,32 +71,122 @@ export default function Dashboard() {
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Dynamic Data States
+  const [metrics, setMetrics] = useState({
+    totalEmployees: 0,
+    activeEmployees: 0,
+    onLeave: 0,
+    monthlyPayroll: "₹0",
+    openPositions: 0,
+    pendingLeaves: 0,
+  });
+  const [departments, setDepartments] = useState([]);
+  const [maxDeptCount, setMaxDeptCount] = useState(45);
+
   useEffect(() => {
     const t = setTimeout(() => setReady(true), 100);
     return () => clearTimeout(t);
   }, []);
 
   useEffect(() => {
-    // TODO: Connect to supabase backend when available
-    // async function fetchActivities() {
-    //   try {
-    //     setLoading(true);
-    //     const { data, error } = await supabase
-    //       .from("activities")
-    //       .select("*")
-    //       .order("id", { ascending: true });
-    //
-    //     if (error) throw error;
-    //     setActivities(data || []);
-    //   } catch (error) {
-    //     console.error("Error fetching activities:", error.message);
-    //   } finally {
-    //     setLoading(false);
-    //   }
-    // }
-    // fetchActivities();
-    setLoading(false);
+    const fetchDashboardData = async () => {
+      setLoading(true);
+      try {
+        // 1. Fetch employees
+        const { data: employeesData } = await supabase
+          .from("employees")
+          .select("id, status, departments(name)");
+        
+        const emps = employeesData || [];
+        const totalEmployees = emps.length;
+        const activeEmployees = emps.filter(e => e.status?.toLowerCase() === "active").length;
+        
+        // Calculate departments
+        const deptCounts = {};
+        emps.forEach(e => {
+          const deptName = e.departments?.name || "Unassigned";
+          deptCounts[deptName] = (deptCounts[deptName] || 0) + 1;
+        });
+
+        // Convert to array and calculate percentages
+        const maxDept = Math.max(...Object.values(deptCounts), 1);
+        setMaxDeptCount(maxDept);
+        const deptColors = ["#E24B4A", "#639922", "#534AB7", "#F59E0B", "#10B981", "#3B82F6", "#8B5CF6", "#EC4899"];
+        const deptList = Object.entries(deptCounts)
+          .map(([name, count], index) => ({
+            name,
+            count,
+            pct: Math.round((count / maxDept) * 100),
+            color: deptColors[index % deptColors.length]
+          }))
+          .sort((a, b) => b.count - a.count); // sort by count descending
+
+        setDepartments(deptList);
+
+        // 2. Fetch Leave Requests
+        const { data: leaveData } = await supabase
+          .from("leave_requests")
+          .select("status");
+        
+        const leaves = leaveData || [];
+        const pendingLeaves = leaves.filter(l => l.status === "Pending").length;
+        const onLeave = leaves.filter(l => l.status === "Approved").length; // Approximation for currently on leave
+
+        // 3. Fetch Payroll for current month
+        const currentMonth = new Date().getMonth() + 1;
+        const currentYear = new Date().getFullYear();
+        const { data: payrollData } = await supabase
+          .from("payroll_records")
+          .select("net_salary")
+          .eq("payroll_month", currentMonth)
+          .eq("payroll_year", currentYear);
+        
+        let totalPayroll = 0;
+        if (payrollData) {
+          totalPayroll = payrollData.reduce((sum, record) => sum + (record.net_salary || 0), 0);
+        }
+        
+        // Format payroll
+        let formattedPayroll = `₹${totalPayroll.toLocaleString("en-IN")}`;
+        if (totalPayroll >= 10000000) {
+          formattedPayroll = `₹${(totalPayroll / 10000000).toFixed(1)}cr`;
+        } else if (totalPayroll >= 100000) {
+          formattedPayroll = `₹${(totalPayroll / 100000).toFixed(1)}L`;
+        } else if (totalPayroll >= 1000) {
+          formattedPayroll = `₹${(totalPayroll / 1000).toFixed(1)}k`;
+        }
+
+        // Set the metrics state
+        setMetrics({
+          totalEmployees,
+          activeEmployees,
+          onLeave,
+          monthlyPayroll: formattedPayroll,
+          openPositions: 0, // Hardcoded, pending recruitment module
+          pendingLeaves
+        });
+
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
   }, []);
+
+  const TOP_METRICS = [
+    { id: "employees", icon: "👥", label: "Total employees", value: String(metrics.totalEmployees), sub: "Across all departments", accent: "blue" },
+    { id: "active", icon: "✅", label: "Active", value: String(metrics.activeEmployees), sub: `${metrics.totalEmployees ? Math.round((metrics.activeEmployees / metrics.totalEmployees) * 100) : 0}% of workforce`, accent: "green" },
+    { id: "leave", icon: "✈️", label: "On leave", value: String(metrics.onLeave), sub: "Approved leaves", accent: "red" },
+    { id: "payroll", icon: "₹", label: "Monthly payroll", value: metrics.monthlyPayroll, sub: "Total compensation", accent: "amber" },
+  ];
+
+  const SECONDARY_METRICS = [
+    { id: "positions", icon: "📋", label: "Open positions", value: String(metrics.openPositions), sub: "Actively hiring", accent: "teal" },
+    { id: "leaves", icon: "🗓️", label: "Pending leaves", value: String(metrics.pendingLeaves), sub: "Awaiting approval", accent: "purple" },
+  ];
 
   return (
     <main className="dashboard">
@@ -153,9 +223,11 @@ export default function Dashboard() {
         <div className="chart-card">
           <h2 className="chart-card__title">Headcount by department</h2>
           <div className="chart-card__bars">
-            {DEPARTMENTS.map((d, i) => (
-              <DeptBar key={d.name} {...d} delay={200 + i * 120} />
-            ))}
+            {departments.length > 0 ? departments.map((d, i) => (
+              <DeptBar key={d.name} {...d} maxCount={maxDeptCount} delay={200 + i * 120} />
+            )) : (
+              <p style={{ padding: "1rem", color: "#666" }}>No department data available.</p>
+            )}
           </div>
         </div>
 

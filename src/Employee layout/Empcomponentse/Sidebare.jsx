@@ -1,4 +1,6 @@
+import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { supabase } from '../../config/supabaseClient';
 import "./Sidebare.css";
 
 const navItems = [
@@ -23,8 +25,41 @@ const navItems = [
     icon: <span>🧑‍💻</span>,
   },
 ];
+
 export default function Sidebar() {
   const navigate = useNavigate();
+  const [profile, setProfile] = useState({ full_name: 'Employee', role: 'Employee', initials: 'EP' });
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('full_name, role')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (data) {
+          const name = data.full_name || 'Employee';
+          const initials = name
+            .split(' ')
+            .map(n => n[0])
+            .join('')
+            .substring(0, 2)
+            .toUpperCase() || 'EP';
+            
+          setProfile({
+            full_name: name,
+            role: data.role ? data.role.charAt(0).toUpperCase() + data.role.slice(1) : 'Employee',
+            initials
+          });
+        }
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   return (
     <aside className="sidebar">
@@ -61,10 +96,10 @@ export default function Sidebar() {
           onClick={() => navigate('/emplogin-info')}
           title="View login information"
         >
-          <div className="user-avatar">JS</div>
+          <div className="user-avatar">{profile.initials}</div>
           <div className="user-info">
-            <span className="user-name">Jose</span>
-            <span className="user-role">Employee</span>
+            <span className="user-name">{profile.full_name}</span>
+            <span className="user-role">{profile.role}</span>
           </div>
         </button>
       </div>

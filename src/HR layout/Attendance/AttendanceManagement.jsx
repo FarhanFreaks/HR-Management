@@ -13,7 +13,7 @@ export default function AttendanceManagement() {
     setLoading(true);
     setErrorMessage("");
 
-    const { data, error } = await supabase
+    const { data: attendanceData, error } = await supabase
       .from("attendance")
       .select(`
         id,
@@ -31,12 +31,62 @@ export default function AttendanceManagement() {
       .order("date", { ascending: false })
       .order("punch_in", { ascending: false });
 
+    const { data: employeesData } = await supabase
+      .from("employees")
+      .select(`
+        id,
+        emp_id,
+        profiles (full_name),
+        departments (name)
+      `)
+      .eq('status', 'Active');
+
     if (error) {
       console.error("Error fetching attendance:", error.message);
       setErrorMessage("Unable to load attendance records.");
       setRecords([]);
     } else {
-      setRecords(data || []);
+      let fetchedRecords = attendanceData || [];
+      
+      const now = new Date();
+      if (now.getHours() >= 9) {
+        const localDate = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+        const todayStr = localDate.toISOString().split('T')[0];
+        
+        const punchedInUserIds = new Set(
+          fetchedRecords
+            .filter((r) => r.date === todayStr)
+            .map((r) => r.employee_id)
+        );
+
+        const activeEmployees = employeesData || [];
+        const missingEmployees = activeEmployees.filter(emp => !punchedInUserIds.has(emp.id));
+
+        const virtualRecords = missingEmployees.map(emp => ({
+          id: `virtual-absent-${emp.id}-${todayStr}`,
+          employee_id: emp.id,
+          date: todayStr,
+          punch_in: null,
+          punch_out: null,
+          status: "Absent",
+          employees: {
+            emp_id: emp.emp_id,
+            profiles: emp.profiles,
+            departments: emp.departments
+          }
+        }));
+
+        fetchedRecords = [...fetchedRecords, ...virtualRecords];
+        fetchedRecords.sort((a, b) => {
+          if (a.date !== b.date) return new Date(b.date) - new Date(a.date);
+          if (!a.punch_in && !b.punch_in) return 0;
+          if (!a.punch_in) return 1;
+          if (!b.punch_in) return -1;
+          return new Date(b.punch_in) - new Date(a.punch_in);
+        });
+      }
+
+      setRecords(fetchedRecords);
     }
 
     setLoading(false);
@@ -70,7 +120,7 @@ export default function AttendanceManagement() {
         record.employee_id?.toLowerCase().includes(searchText);
 
       const isComplete = Boolean(record.punch_out);
-      const displayStatus = isComplete ? "Completed" : record.status || "Present";
+      const displayStatus = record.status === "Absent" ? "Absent" : (isComplete ? "Completed" : record.status || "Present");
       const matchesStatus = statusFilter === "All" || displayStatus === statusFilter;
 
       return matchesSearch && matchesStatus;
@@ -80,6 +130,7 @@ export default function AttendanceManagement() {
   const presentCount = records.filter((record) => record.status === "Present").length;
   const completedCount = records.filter((record) => record.punch_out).length;
   const activeCount = records.filter((record) => record.punch_in && !record.punch_out).length;
+  const absentCount = records.filter((record) => record.status === "Absent").length;
 
   const formatTime = (isoString) => {
     if (!isoString) return "--:--";
@@ -102,6 +153,7 @@ export default function AttendanceManagement() {
   };
 
   const getDisplayStatus = (record) => {
+    if (record.status === "Absent") return "Absent";
     if (record.punch_out) return "Completed";
     return record.status || "Present";
   };
@@ -125,6 +177,10 @@ export default function AttendanceManagement() {
           <span className="stat-title" style={{ color: "#1D4ED8" }}>Completed</span>
           <span className="stat-value" style={{ color: "#1D4ED8" }}>{completedCount}</span>
         </div>
+        <div className="stat-card">
+          <span className="stat-title" style={{ color: "#B91C1C" }}>Absent</span>
+          <span className="stat-value" style={{ color: "#B91C1C" }}>{absentCount}</span>
+        </div>
       </div>
 
       <section className="attendance-card">
@@ -146,6 +202,7 @@ export default function AttendanceManagement() {
               <option value="All">All Statuses</option>
               <option value="Present">Present</option>
               <option value="Completed">Completed</option>
+              <option value="Absent">Absent</option>
             </select>
             <button className="btn-lop" type="button" onClick={fetchAttendance}>
               Refresh
@@ -195,8 +252,8 @@ export default function AttendanceManagement() {
                   <span
                     className="status-badge"
                     style={{
-                      background: displayStatus === "Completed" ? "var(--accent-blue, #EFF6FF)" : "var(--accent-green)",
-                      color: displayStatus === "Completed" ? "#1D4ED8" : "#15803D",
+                      background: displayStatus === "Absent" ? "var(--accent-red, #FEF2F2)" : (displayStatus === "Completed" ? "var(--accent-blue, #EFF6FF)" : "var(--accent-green)"),
+                      color: displayStatus === "Absent" ? "#B91C1C" : (displayStatus === "Completed" ? "#1D4ED8" : "#15803D"),
                     }}
                   >
                     {displayStatus}

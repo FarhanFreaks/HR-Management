@@ -1,80 +1,99 @@
 import { supabase } from "@/config/supabaseClient";
 
 export const payrollService = {
+  // --- 1. SETTINGS ---
   async getSettings() {
-    const { data, error } = await supabase.from("payroll_settings").select("*").eq("id", 1).single();
+    const { data, error } = await supabase.from("payroll_settings").select("*").eq("id", 1).maybeSingle();
+    if (error || !data) {
+      return {
+        paid_leave_allowed: 1, pf_percentage: 12, professional_tax_percentage: 2,
+        health_insurance_percentage: 1, income_tax_percentage: 5, other_deduction_percentage: 0
+      };
+    }
+    return data;
+  },
+
+  async updateSettings(payload) {
+    const { data, error } = await supabase
+      .from("payroll_settings")
+      .update({ ...payload, updated_at: new Date().toISOString() })
+      .eq("id", 1)
+      .select()
+      .single();
     if (error) throw error;
     return data;
   },
 
-  async generatePayroll(month, year, generatedBy) {
+  // --- 2. FETCH DATA ---
+  async listPayroll(month, year) {
+    const { data, error } = await supabase
+      .from("payroll_records")
+      .select(`
+        *,
+        employees (
+          emp_id,
+          employee_id,
+          departments ( name ), 
+          designations ( title ), 
+          profiles ( full_name )
+        )
+      `) 
+      .eq("payroll_month", month)
+      .eq("payroll_year", year)
+      .order("generated_at", { ascending: false }); // 👈 FIXED: changed from 'created_at' to 'generated_at'
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  // --- 3. GENERATE PAYROLL ---
+  async generateMonthlyPayroll(month, year, generatedBy) {
     const settings = await this.getSettings();
     const firstDay = new Date(year, month - 1, 1).toISOString();
     const lastDay = new Date(year, month, 0).toISOString();
     const totalDaysInMonth = new Date(year, month, 0).getDate();
 
-    // 1. Fetch live cross-module data safely to prevent 400 Bad Request errors
     const [empRes, attRes, leaveRes] = await Promise.all([
-      // FIX 1: Selecting all columns prevents crashes if 'base_salary' or 'status' differ in your DB
       supabase.from("employees").select("*"),
-      
-      // FIX 2: Replaced 'attendance_date' with 'date' to match the database schema
-      supabase.from("attendance")
-        .select("employee_id, status")
-        .gte("date", firstDay)
-        .lte("date", lastDay),
-        
-      // FIX 3: Replaced 'approval_status' with 'status' to match the database schema
-      supabase.from("leave_requests")
-        .select("employee_id, total_days")
-        .eq("status", "Approved")
-        .gte("start_date", firstDay)
-        .lte("end_date", lastDay)
+      supabase.from("attendance").select("employee_id, status").gte("date", firstDay).lte("date", lastDay),
+      supabase.from("leave_requests").select("employee_id, total_days").eq("status", "Approved").gte("start_date", firstDay).lte("end_date", lastDay)
     ]);
 
     if (empRes.error) throw new Error("Failed to fetch employees: " + empRes.error.message);
-    if (attRes.error) throw new Error("Failed to fetch attendance: " + attRes.error.message);
-    if (leaveRes.error) throw new Error("Failed to fetch leaves: " + leaveRes.error.message);
 
-    // FIX 4: Safely filter active employees in Javascript
-    const activeEmployees = empRes.data.filter(emp => emp.status === "Active" || !emp.status);
+    const activeEmployees = empRes.data.filter(emp => {
+      const stat = (emp.status || "").toLowerCase();
+      return stat !== "inactive" && stat !== "terminated";
+    });
 
     const payrollEntries = activeEmployees.map(emp => {
-      // FIX 5: Safely fallback whether your column is named 'base_salary' or 'salary'
+      const employeeDbId = emp.id || emp.employee_id;
       const baseSalary = Number(emp.base_salary || emp.salary || 0);
       const perDaySalary = baseSalary / totalDaysInMonth;
 
-      // ATTENDANCE: Count Present Days
-      const presentDays = attRes.data?.filter(a => a.employee_id === emp.id && a.status === 'Present').length || 0;
-      
-      // LEAVES: Sum Approved Leave Days
-      const approvedLeaveDays = leaveRes.data?.filter(l => l.employee_id === emp.id)
+      const presentDays = attRes.data?.filter(a => (a.employee_id === emp.id || a.employee_id === emp.employee_id) && a.status === 'Present').length || 0;
+      const approvedLeaveDays = leaveRes.data?.filter(l => l.employee_id === emp.id || l.employee_id === emp.employee_id)
         .reduce((sum, req) => sum + req.total_days, 0) || 0;
 
-      // ABSENCE CALCULATION
       let absentDays = totalDaysInMonth - presentDays - approvedLeaveDays;
       if (absentDays < 0) absentDays = 0;
       const absenceDeduction = absentDays * perDaySalary;
 
-      // LEAVE DEDUCTION (1 Free Leave Policy)
       const paidLeaveAllowed = settings.paid_leave_allowed || 1;
       let excessLeaveDays = approvedLeaveDays - paidLeaveAllowed;
       if (excessLeaveDays < 0) excessLeaveDays = 0;
       const leaveDeduction = excessLeaveDays * perDaySalary;
 
-      // CONFIGURABLE DEDUCTIONS (with safe fallbacks)
       const pfAmount = baseSalary * ((settings.pf_percentage || 12) / 100);
       const ptAmount = baseSalary * ((settings.professional_tax_percentage || 2) / 100);
       const insAmount = baseSalary * ((settings.health_insurance_percentage || 1) / 100);
       const taxAmount = baseSalary * ((settings.income_tax_percentage || 5) / 100);
       const otherAmount = baseSalary * ((settings.other_deduction_percentage || 0) / 100);
 
-      // FINAL FORMULA
       const totalDeductions = leaveDeduction + absenceDeduction + pfAmount + ptAmount + insAmount + taxAmount + otherAmount;
-      const netSalary = baseSalary - totalDeductions;
 
       return {
-        employee_id: emp.id,
+        employee_id: employeeDbId,
         payroll_month: month,
         payroll_year: year,
         working_days: totalDaysInMonth,
@@ -99,52 +118,29 @@ export const payrollService = {
         other_deduction_amount: otherAmount,
         total_deductions: totalDeductions,
         gross_salary: baseSalary,
-        net_salary: netSalary,
+        net_salary: baseSalary - totalDeductions,
         status: 'Generated',
         generated_by: generatedBy
       };
     });
 
-    // 2. Insert (Ignores duplicates based on the UNIQUE constraint)
     const { data, error } = await supabase.from("payroll_records").upsert(payrollEntries, { onConflict: 'employee_id,payroll_month,payroll_year', ignoreDuplicates: true }).select();
-    if (error) throw error;
+    if (error) throw new Error("Database Error: " + error.message);
     return data;
   },
 
-  // Export Logic
-  exportToCSV(payrolls, month, year) {
-    let csv = "Employee ID,Name,Department,Base Salary,Present Days,Absent Days,Leave Deductions,Absence Deductions,PF,Tax,Insurance,Total Deductions,Net Salary,Status\n";
-    payrolls.forEach(row => {
-      // Safe fallbacks for relational employee data
-      const empId = row.employees?.employee_id || row.employees?.emp_id || '';
-      const name = row.employees?.full_name || '';
-      const dept = row.employees?.department || '';
-      
-      csv += `${empId},${name},${dept},${row.base_salary},${row.present_days},${row.absent_days},${row.leave_deduction},${row.absence_deduction},${row.pf_amount},${row.income_tax_amount},${row.insurance_amount},${row.total_deductions},${row.net_salary},${row.status}\n`;
-    });
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `Payroll_${month}_${year}.csv`;
-    link.click();
+  // --- 4. STATUS UPDATES ---
+  async updatePayrollStatus(id, status, remarks = "") {
+    const payload = { status, remarks };
+    if (status === 'Reviewed') payload.reviewed_at = new Date().toISOString();
+    if (status === 'Approved') payload.approved_at = new Date().toISOString();
+    if (status === 'Paid') payload.paid_at = new Date().toISOString();
+
+    const { error } = await supabase.from("payroll_records").update(payload).eq("id", id);
+    if (error) throw error;
   },
 
-  // Simulate Email & Workflow update
-  async emailAndMarkPaid(payrolls, hrId) {
-    const toUpdate = payrolls.filter(p => p.status === 'Approved');
-    const sentAt = new Date().toISOString();
-    
-    // In production, trigger a Supabase Edge Function here to hit SendGrid/Resend.
-    for (let p of toUpdate) {
-      await supabase.from("payroll_records").update({
-        status: 'Paid',
-        paid_at: sentAt,
-        sent_at: sentAt,
-        sent_by: hrId,
-        email_status: 'Delivered'
-      }).eq('id', p.id);
-    }
-  },
-
-  formatMoney: (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(val || 0)
+  formatCurrency(value) {
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value || 0);
+  }
 };

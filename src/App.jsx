@@ -156,7 +156,7 @@ export default function App() {
         )}
 
         {/* Catch-all route for unauthorized access */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/quick-actions" replace />} />
       </Routes>
     </BrowserRouter>
   );

@@ -42,24 +42,7 @@
 
 import { useState, useEffect } from "react";
 import "./EmployeeDashboard.css";
-
-/* ─────────────────────────────────────────────────────────
-   DATA CONSTANTS
-   In a real app these would come from an API call:
-     const { data } = useFetch('/api/employee/me');
-   For now they are static so the component is self-contained.
-───────────────────────────────────────────────────────── */
-
-/**
- * Logged-in employee's basic profile.
- * Replace with dynamic data from your auth context or API.
- */
-const EMPLOYEE_DATA = {
-  name:       "Jose",
-  id:         "EMDS101",
-  department: "Engineering",
-  initials:   "RM",   /* used by the sidebar avatar (reference) */
-};
+import { supabase } from "../../config/supabaseClient";
 
 /**
  * Recent announcements list.
@@ -213,8 +196,55 @@ export default function EmployeeDashboard() {
    * before we trigger the transition.
    */
   const [visible, setVisible] = useState(false);
+  const [employeeData, setEmployeeData] = useState({
+    name: "Loading...",
+    id: "Loading...",
+    department: "Engineering", // Mocked
+  });
 
   useEffect(() => {
+    const fetchProfile = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        // Query employees table to get emp_id, department and profile data
+        const { data } = await supabase
+          .from('employees')
+          .select(`
+            emp_id,
+            departments (name),
+            profiles (full_name, role)
+          `)
+          .eq('id', session.user.id)
+          .maybeSingle();
+        
+        if (data) {
+          const profile = data.profiles || {};
+          setEmployeeData({
+            name: profile.full_name || "Employee",
+            id: data.emp_id || "EMP-XXX",
+            department: data.departments?.name || "Unassigned",
+          });
+        } else {
+          // Fallback if they are in profiles but not employees
+          const { data: fallbackData } = await supabase
+            .from('profiles')
+            .select('full_name, role')
+            .eq('id', session.user.id)
+            .maybeSingle();
+
+          if (fallbackData) {
+            const shortId = session.user.id.substring(0, 8).toUpperCase();
+            setEmployeeData({
+              name: fallbackData.full_name || "Employee",
+              id: `EMP-${shortId}`,
+              department: "Unassigned",
+            });
+          }
+        }
+      }
+    };
+    fetchProfile();
+
     const timer = setTimeout(() => setVisible(true), 80);
     /* Cleanup: cancel the timer if the component unmounts early */
     return () => clearTimeout(timer);
@@ -256,7 +286,7 @@ export default function EmployeeDashboard() {
             {/* <dt> = definition term (the label) */}
             <dt className="emp-card__field-label">Employee Name:</dt>
             {/* <dd> = definition description (the value) */}
-            <dd className="emp-card__field-value">{EMPLOYEE_DATA.name}</dd>
+            <dd className="emp-card__field-value">{employeeData.name}</dd>
           </div>
 
           {/* Employee ID row */}
@@ -264,14 +294,14 @@ export default function EmployeeDashboard() {
             <dt className="emp-card__field-label">Employee ID:</dt>
             <dd className="emp-card__field-value emp-card__field-value--mono">
               {/* Monospace font for the ID code */}
-              {EMPLOYEE_DATA.id}
+              {employeeData.id}
             </dd>
           </div>
 
           {/* Department row */}
           <div className="emp-card__row">
             <dt className="emp-card__field-label">Employee Department :</dt>
-            <dd className="emp-card__field-value">{EMPLOYEE_DATA.department}</dd>
+            <dd className="emp-card__field-value">{employeeData.department}</dd>
           </div>
 
         </dl>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/config/supabaseClient";
-import "./Payroll.css"; // Ensure this imports your existing styles
+import "./Payroll.css";
 
 export default function Payroll() {
   const [payrolls, setPayrolls] = useState([]);
@@ -8,28 +8,35 @@ export default function Payroll() {
   const [processing, setProcessing] = useState(false);
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
+  const [selectedIds, setSelectedIds] = useState(new Set());
 
   useEffect(() => {
     fetchPayrolls();
   }, [month, year]);
 
-  // 1. FETCH FROM THE CORRECT TABLE (payroll_records)
+  // 1. FETCH FROM THE CORRECT TABLES
   const fetchPayrolls = async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from("payroll_records") // specifically targeting the table from your screenshot
+      .from("payroll_records")
       .select(`
         id, base_salary, total_deductions, net_salary, status,
-        employees (emp_id, full_name, department)
+        employees (
+          emp_id, 
+          profiles ( full_name ),
+          departments ( name ) 
+        )
       `)
       .eq("payroll_month", month)
       .eq("payroll_year", year)
-      .order("created_at", { ascending: false });
+      .order("generated_at", { ascending: false }); // 👈 FIXED: changed from 'created_at' to 'generated_at'
 
     if (error) {
       console.error("Fetch error:", error);
+      alert("Error loading data: " + error.message);
     } else {
       setPayrolls(data || []);
+      setSelectedIds(new Set()); // Clear selection on fetch
     }
     setLoading(false);
   };
@@ -45,14 +52,50 @@ export default function Payroll() {
     if (error) {
       alert("Error updating status: " + error.message);
     } else {
-      fetchPayrolls(); // Refresh table to show new status
+      fetchPayrolls();
+    }
+    setProcessing(false);
+  };
+
+  // 2.5 BULK UPDATE
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      // Only select records that can actually be updated (not Approved or Paid)
+      const validRecords = payrolls.filter(p => p.status !== 'Approved' && p.status !== 'Paid');
+      setSelectedIds(new Set(validRecords.map(p => p.id)));
+    } else {
+      setSelectedIds(new Set());
+    }
+  };
+
+  const handleSelectOne = (id) => {
+    const newSet = new Set(selectedIds);
+    if (newSet.has(id)) newSet.delete(id);
+    else newSet.add(id);
+    setSelectedIds(newSet);
+  };
+
+  const bulkUpdateStatus = async (newStatus) => {
+    if (selectedIds.size === 0) return;
+    setProcessing(true);
+    
+    const idsArray = Array.from(selectedIds);
+    const { error } = await supabase
+      .from("payroll_records")
+      .update({ status: newStatus })
+      .in("id", idsArray);
+
+    if (error) {
+      alert("Error updating bulk status: " + error.message);
+    } else {
+      setSelectedIds(new Set());
+      fetchPayrolls();
     }
     setProcessing(false);
   };
 
   // 3. EXPORT SPREADSHEET & SEND TO FINANCE
   const exportAndEmailFinance = async () => {
-    // Only export payrolls that HR has approved
     const approvedPayrolls = payrolls.filter(p => p.status === 'Approved');
     
     if (approvedPayrolls.length === 0) {
@@ -62,20 +105,21 @@ export default function Payroll() {
 
     setProcessing(true);
 
-    // Step A: Generate CSV Spreadsheet
     let csvContent = "Employee ID,Name,Department,Base Salary,Total Deductions,Net Salary,Status\n";
     approvedPayrolls.forEach(row => {
-      csvContent += `${row.employees?.emp_id},${row.employees?.full_name},${row.employees?.department},${row.base_salary},${row.total_deductions},${row.net_salary},${row.status}\n`;
+      // Safely grab the relational data for the Excel sheet
+      const empName = row.employees?.profiles?.full_name || "Unknown"; 
+      const deptName = row.employees?.departments?.name || "Unassigned"; 
+      
+      csvContent += `${row.employees?.emp_id},${empName},${deptName},${row.base_salary},${row.total_deductions},${row.net_salary},${row.status}\n`;
     });
 
-    // Step B: Trigger Browser Download (Export)
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = `Finance_Payroll_Report_${month}_${year}.csv`;
     link.click();
 
-    // Step C: Simulate Emailing Finance & Updating Database Status to 'Paid'
     try {
       for (let p of approvedPayrolls) {
         await supabase.from("payroll_records").update({ status: 'Paid' }).eq('id', p.id);
@@ -89,7 +133,6 @@ export default function Payroll() {
     setProcessing(false);
   };
 
-  // Quick Math for Dashboard Widgets
   const totalGross = payrolls.reduce((sum, p) => sum + Number(p.base_salary), 0);
   const totalNet = payrolls.reduce((sum, p) => sum + Number(p.net_salary), 0);
   const totalDeductions = payrolls.reduce((sum, p) => sum + Number(p.total_deductions), 0);
@@ -100,20 +143,38 @@ export default function Payroll() {
       <div className="topbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <h1 style={{ fontSize: '24px', color: '#1B2559' }}>Payroll Module</h1>
         
-        {/* EXPORT TO FINANCE BUTTON */}
-        <button 
-          onClick={exportAndEmailFinance} 
-          disabled={processing || payrolls.length === 0}
-          style={{
-            background: '#15803D', color: 'white', padding: '10px 20px', 
-            borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer'
-          }}
-        >
-          {processing ? "Processing..." : "📊 Export & Email to Finance"}
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          {selectedIds.size > 0 && (
+            <>
+              <button 
+                onClick={() => bulkUpdateStatus('Reviewed')}
+                disabled={processing}
+                style={{ background: '#3B82F6', color: 'white', padding: '10px 15px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}
+              >
+                Mark {selectedIds.size} Reviewed
+              </button>
+              <button 
+                onClick={() => bulkUpdateStatus('Approved')}
+                disabled={processing}
+                style={{ background: '#10B981', color: 'white', padding: '10px 15px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}
+              >
+                Approve {selectedIds.size}
+              </button>
+            </>
+          )}
+          <button 
+            onClick={exportAndEmailFinance} 
+            disabled={processing || payrolls.length === 0}
+            style={{
+              background: '#15803D', color: 'white', padding: '10px 20px', 
+              borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer'
+            }}
+          >
+            {processing ? "Processing..." : "📊 Export & Email to Finance"}
+          </button>
+        </div>
       </div>
 
-      {/* DASHBOARD WIDGETS */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '30px' }}>
         <div className="stat-card" style={{ background: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
           <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 'bold' }}>GROSS EXPENSE</div>
@@ -133,11 +194,18 @@ export default function Payroll() {
         </div>
       </div>
 
-      {/* PAYROLL DATA TABLE */}
       <div style={{ background: 'white', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead style={{ background: '#F8FAFC', borderBottom: '2px solid #E2E8F0' }}>
             <tr>
+              <th style={{ padding: '16px', width: '40px' }}>
+                <input 
+                  type="checkbox" 
+                  onChange={handleSelectAll} 
+                  checked={payrolls.length > 0 && selectedIds.size === payrolls.length}
+                  style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+                />
+              </th>
               <th style={{ padding: '16px' }}>Employee</th>
               <th style={{ padding: '16px' }}>Base Salary</th>
               <th style={{ padding: '16px' }}>Deductions</th>
@@ -153,10 +221,19 @@ export default function Payroll() {
               <tr><td colSpan="6" style={{ padding: '20px', textAlign: 'center' }}>No payroll records found for this month.</td></tr>
             ) : (
               payrolls.map(p => (
-                <tr key={p.id} style={{ borderBottom: '1px solid #E2E8F0' }}>
+                <tr key={p.id} style={{ borderBottom: '1px solid #E2E8F0', background: selectedIds.has(p.id) ? '#F1F5F9' : 'transparent' }}>
                   <td style={{ padding: '16px' }}>
-                    <strong>{p.employees?.full_name || "Unknown"}</strong>
-                    <div style={{ fontSize: '12px', color: '#64748B' }}>{p.employees?.department || "N/A"}</div>
+                    <input 
+                      type="checkbox" 
+                      checked={selectedIds.has(p.id)}
+                      onChange={() => handleSelectOne(p.id)}
+                      disabled={p.status === 'Approved' || p.status === 'Paid'}
+                      style={{ cursor: p.status === 'Approved' || p.status === 'Paid' ? 'not-allowed' : 'pointer', width: '16px', height: '16px' }}
+                    />
+                  </td>
+                  <td style={{ padding: '16px' }}>
+                    <strong>{p.employees?.profiles?.full_name || "Unknown"}</strong>
+                    <div style={{ fontSize: '12px', color: '#64748B' }}>{p.employees?.departments?.name || "Unassigned"}</div>
                   </td>
                   <td style={{ padding: '16px' }}>₹{Number(p.base_salary).toLocaleString()}</td>
                   <td style={{ padding: '16px', color: '#D32F2F' }}>-₹{Number(p.total_deductions).toLocaleString()}</td>
@@ -171,7 +248,6 @@ export default function Payroll() {
                     </span>
                   </td>
                   <td style={{ padding: '16px' }}>
-                    {/* HR REVIEW WORKFLOW BUTTONS */}
                     {p.status === 'Generated' && (
                       <button onClick={() => updateStatus(p.id, 'Reviewed')} style={{ background: '#3B82F6', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer' }}>Mark Reviewed</button>
                     )}
