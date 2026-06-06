@@ -1,31 +1,19 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Sora:wght@400;600;700&display=swap');
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  font-family: 'DM Sans', sans-serif;
-  background: #eef0f7;
-}
-
-.app {
+/* ── Leave Module Layout ── */
+.leave-module-wrapper {
   display: flex;
-  min-height: 100vh;
-  background: #eef0f7;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 40px;
+  padding: 20px;
+  width: 100%;
 }
 
 /* Main Content */
-.main {
+.leave-main {
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .form-wrapper {

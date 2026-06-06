@@ -1,20 +1,29 @@
 :root {
-  --bg-page:        #F0F2F8;   
+  --bg-page:        #F8FAFC;   
   --bg-card:        #FFFFFF;   
-  --bg-sidebar:     #1B2559;   
-  --text-primary:   #1B2559;  
-  --text-secondary: #64748B;   
+  --bg-sidebar:     #0F172A;   
+  --text-primary:   #0F172A;  
+  --text-secondary: #475569;   
   --text-muted:     #94A3B8;   
-  --accent-blue:    #EFF6FF;  
-  --accent-green:   #F0FDF4;   
-  --accent-red:     #FEF2F2;  
-  --accent-amber:   #FFFBEB;   
-  --accent-teal:    #F0FDFA;   
-  --accent-purple:  #FAF5FF;   
+  
+  --accent-blue-bg:    #E0F2FE;  
+  --accent-blue-text:  #0284C7;  
+  --accent-green-bg:   #DCFCE7;   
+  --accent-green-text: #16A34A;   
+  --accent-red-bg:     #FEE2E2;  
+  --accent-red-text:   #DC2626;  
+  --accent-amber-bg:   #FEF3C7;   
+  --accent-amber-text: #D97706;   
+  --accent-teal-bg:    #CCFBF1;   
+  --accent-teal-text:  #0D9488;   
+  --accent-purple-bg:  #F3E8FF;   
+  --accent-purple-text:#9333EA;   
+  
   --border-color:   #E2E8F0;   
 
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-card: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-card-hover: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 
   --space-xs:  4px;
   --space-sm:  8px;
@@ -25,15 +34,15 @@
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
+  --radius-xl: 24px;
 
-  --font-body:    'DM Sans', 'Segoe UI', sans-serif;
-  --font-display: 'DM Serif Display', Georgia, serif;
+  --font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
-  --transition-fast:   150ms ease;
-  --transition-normal: 300ms ease;
-  --transition-slow:   600ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --transition-fast:   150ms ease-in-out;
+  --transition-normal: 300ms ease-in-out;
+  --transition-slow:   500ms cubic-bezier(0.4, 0, 0.2, 1);
 }
-
 
 *,
 *::before,
@@ -55,408 +64,317 @@ ul {
   list-style: none; 
 }
 
-
-
 .dashboard {
-  padding: var(--space-lg) var(--space-xl); 
   display: flex;
   flex-direction: column;
-  gap: var(--space-lg);       
-  min-height: 100vh;
-  background: var(--bg-page);
+  gap: var(--space-lg);
 }
-
-
-
 
 .dashboard__header {
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
+  margin-bottom: var(--space-md);
 }
-
 
 .dashboard__title {
   font-family: var(--font-display);
-  font-size: 28px;
-  font-weight: 400;           
+  font-size: 32px;
+  font-weight: 700;           
   color: var(--text-primary);
   letter-spacing: -0.02em;   
 }
 
-
 .dashboard__date {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-secondary);
-  font-weight: 400;
+  font-weight: 500;
 }
-
 
 .metrics-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: var(--space-md);
+  gap: var(--space-lg);
 }
 
 .metrics-row--secondary {
   grid-template-columns: repeat(4, 1fr);
 }
-.metrics-row__spacer {
 
+.metrics-row__spacer {
+  display: none; /* Can just hide spacers on all breakpoints for cleaner grid handling or let empty columns sit naturally. We'll use grid-column empty spacing. */
+}
+@media (min-width: 1024px) {
+  .metrics-row__spacer {
+    display: block;
+  }
 }
 
-/* Individual metric card tile */
 .metric-card {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  padding: var(--space-md) var(--space-md) var(--space-md);
+  border-radius: var(--radius-xl);
+  padding: var(--space-lg);
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
-  box-shadow: var(--shadow-card);
+  gap: var(--space-sm);
+  box-shadow: var(--shadow-sm);
   cursor: default;
+  position: relative;
+  overflow: hidden;
 
-  /* Entrance animation — starts invisible, slides up */
   opacity: 0;
   transform: translateY(12px);
   transition:
     opacity var(--transition-normal),
     transform var(--transition-normal),
-    box-shadow var(--transition-fast);
+    box-shadow var(--transition-fast),
+    border-color var(--transition-fast);
 }
 
-/* When .metric-card--visible is added by JS, card becomes visible */
 .metric-card--visible {
   opacity: 1;
   transform: translateY(0);
 }
 
-/* Subtle lift on hover */
 .metric-card:hover {
   box-shadow: var(--shadow-card-hover);
-  transform: translateY(-1px);
+  transform: translateY(-4px);
+  border-color: #CBD5E1;
 }
 
-/* Icon wrapper circle */
 .metric-card__icon-wrap {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-sm);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: var(--space-sm);
-  font-size: 18px;
-  /* Background tint is set via [data-accent] rules below */
+  font-size: 22px;
+  transition: transform var(--transition-fast);
 }
 
-/* Emoji / symbol inside the icon wrapper */
+.metric-card:hover .metric-card__icon-wrap {
+  transform: scale(1.1);
+}
+
 .metric-card__icon {
   line-height: 1;
 }
 
-/* Small uppercase label — e.g. "Total employees" */
 .metric-card__label {
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
   color: var(--text-secondary);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
-/* Large value — e.g. "150" or "₹1cr" */
 .metric-card__value {
   font-family: var(--font-display);
-  font-size: 32px;
-  font-weight: 400;
+  font-size: 36px;
+  font-weight: 700;
   color: var(--text-primary);
-  line-height: 1.1;
+  line-height: 1.2;
 }
 
-/* Muted description below the value */
 .metric-card__sub {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-muted);
-  margin-top: 2px;
+  font-weight: 500;
+  margin-top: 4px;
 }
 
-
-/* ═══════════════════════════════════════════════════
-   6. METRIC CARD ACCENT COLOURS
-   Each card has a data-accent attribute set by the JSX.
-   These rules apply a tinted background to the icon wrap
-   so each card has its own identity.
-
-   Selector pattern: .metric-card[data-accent="blue"] .metric-card__icon-wrap
-═══════════════════════════════════════════════════ */
-
-/* Blue — Total Employees */
 .metric-card[data-accent="blue"] .metric-card__icon-wrap {
-  background: var(--accent-blue);
+  background: var(--accent-blue-bg);
+  color: var(--accent-blue-text);
 }
-
-/* Green — Active employees */
 .metric-card[data-accent="green"] .metric-card__icon-wrap {
-  background: var(--accent-green);
+  background: var(--accent-green-bg);
+  color: var(--accent-green-text);
 }
-
-/* Red — On leave */
 .metric-card[data-accent="red"] .metric-card__icon-wrap {
-  background: var(--accent-red);
+  background: var(--accent-red-bg);
+  color: var(--accent-red-text);
 }
-
-/* Amber — Monthly payroll */
 .metric-card[data-accent="amber"] .metric-card__icon-wrap {
-  background: var(--accent-amber);
+  background: var(--accent-amber-bg);
+  color: var(--accent-amber-text);
 }
-
-/* Teal — Open positions */
 .metric-card[data-accent="teal"] .metric-card__icon-wrap {
-  background: var(--accent-teal);
+  background: var(--accent-teal-bg);
+  color: var(--accent-teal-text);
 }
-
-/* Purple — Pending leaves */
 .metric-card[data-accent="purple"] .metric-card__icon-wrap {
-  background: var(--accent-purple);
+  background: var(--accent-purple-bg);
+  color: var(--accent-purple-text);
 }
 
-
-/* ═══════════════════════════════════════════════════
-   7. METRIC CARD — STAGGERED ANIMATION
-   Each card gets a slightly later animation-delay so
-   they appear one after another from left to right.
-   Delay values are set inline in the JSX via style prop.
-═══════════════════════════════════════════════════ */
 .metric-card:nth-child(1) { transition-delay: 0ms; }
 .metric-card:nth-child(2) { transition-delay: 80ms; }
 .metric-card:nth-child(3) { transition-delay: 160ms; }
 .metric-card:nth-child(4) { transition-delay: 240ms; }
 
-
-/* ═══════════════════════════════════════════════════
-   8. DEPARTMENT BAR CHART
-   .chart-card holds the section title and all bar rows.
-   Each .dept-bar is a 3-column grid:
-     [name] [track................] [count]
-═══════════════════════════════════════════════════ */
-
-/* Bottom row: two equal columns */
 .dashboard__bottom {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-lg);
-  align-items: start;   /* cards don't stretch to match each other's height */
+  align-items: start;
 }
 
-/* White card wrapping the bar chart */
-.chart-card {
+.chart-card, .activity-card {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  padding: var(--space-lg);
+  border-radius: var(--radius-xl);
+  padding: var(--space-xl);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+.chart-card:hover, .activity-card:hover {
   box-shadow: var(--shadow-card);
 }
 
-/* Section title inside the chart card */
-.chart-card__title {
-  font-size: 14px;
-  font-weight: 600;
+.chart-card__title, .activity-card__title {
+  font-size: 18px;
+  font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: var(--space-md);
+  margin-bottom: var(--space-lg);
   letter-spacing: -0.01em;
 }
 
-/* Container for all department rows */
 .chart-card__bars {
   display: flex;
   flex-direction: column;
-  gap: 14px;       /* vertical spacing between bar rows */
+  gap: var(--space-md);
 }
 
-/* Single department row: name | track | count */
 .dept-bar {
   display: grid;
-  grid-template-columns: 90px 1fr 28px; /* fixed name, flexible track, fixed count */
+  grid-template-columns: 110px 1fr 40px;
   align-items: center;
-  gap: var(--space-sm);
+  gap: var(--space-md);
 }
 
-/* Department name text */
 .dept-bar__name {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-secondary);
-  font-weight: 400;
-  white-space: nowrap;      /* prevent wrapping */
+  font-weight: 500;
+  white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;  /* "Engineering..." if too long */
+  text-overflow: ellipsis;
 }
 
-/* Grey background track (the empty bar container) */
 .dept-bar__track {
-  height: 8px;
-  background: #E9EEF5;        /* light grey — the unfilled portion */
-  border-radius: 100px;       /* pill shape */
-  overflow: hidden;           /* clip the fill to the rounded track */
+  height: 10px;
+  background: #F1F5F9;
+  border-radius: 100px;
+  overflow: hidden;
 }
 
-/* Coloured fill inside the track.
-   Width is animated from 0% → target% by the DeptBar component.
-   The color is set inline from the data array. */
 .dept-bar__fill {
   height: 100%;
   border-radius: 100px;
-  transition: width var(--transition-slow); /* smooth left-to-right grow */
+  transition: width var(--transition-slow);
 }
 
-/* Headcount number at the end of each row */
 .dept-bar__count {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 700;
   color: var(--text-primary);
   text-align: right;
 }
 
-
-/* ═══════════════════════════════════════════════════
-   9. RECENT ACTIVITY FEED
-   .activity-card holds the feed title and an unordered
-   list of activity items. Each item has a coloured
-   square bullet, the activity text, and a timestamp.
-═══════════════════════════════════════════════════ */
-
-/* White card wrapping the activity feed */
-.activity-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  padding: var(--space-lg);
-  box-shadow: var(--shadow-card);
-}
-
-/* Section title inside the activity card */
-.activity-card__title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: var(--space-md);
-  letter-spacing: -0.01em;
-}
-
-/* Unordered list — stack items vertically */
 .activity-card__list {
   display: flex;
   flex-direction: column;
-  gap: 18px;     /* breathing room between each activity */
+  gap: var(--space-lg);
 }
 
-/* Single activity row: [dot] [text + time] */
 .activity-item {
   display: flex;
   align-items: flex-start;
-  gap: var(--space-sm);
+  gap: var(--space-md);
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid #F1F5F9;
+}
+.activity-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
-/* Coloured square bullet — colour variants defined below */
 .activity-item__dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;         /* slight rounding = friendly square */
-  flex-shrink: 0;             /* never shrink the dot */
-  margin-top: 3px;            /* optical alignment with text */
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
 }
 
-/* Text block beside the dot */
 .activity-item__body {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
-/* Main activity description */
 .activity-item__text {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-primary);
-  font-weight: 400;
-  line-height: 1.4;
+  font-weight: 500;
+  line-height: 1.5;
 }
 
-/* Muted timestamp below the description */
 .activity-item__time {
   font-size: 12px;
   color: var(--text-muted);
+  font-weight: 500;
 }
 
+.dot-red    { background: var(--accent-red-text); }
+.dot-purple { background: var(--accent-purple-text); }
+.dot-amber  { background: var(--accent-amber-text); }
+.dot-blue   { background: var(--accent-blue-text); }
+.dot-green  { background: var(--accent-green-text); }
 
-/* ═══════════════════════════════════════════════════
-  10. ACTIVITY DOT COLOURS
-   Each activity type gets a distinct coloured bullet.
-   Class names are applied in the ACTIVITIES data array.
-═══════════════════════════════════════════════════ */
-
-.dot-red    { background: #E24B4A; } /* recruitment / offer stage */
-.dot-purple { background: #7F77DD; } /* attendance / check-in     */
-.dot-amber  { background: #BA7517; } /* leave requests             */
-.dot-blue   { background: #378ADD; } /* new hire joins             */
-.dot-green  { background: #639922; } /* job posting                */
-
-
-/* ═══════════════════════════════════════════════════
-  11. RESPONSIVE BREAKPOINTS
-   Adapt the grid layouts for smaller screens.
-   The dashboard is designed for 1024px+ (desktop).
-═══════════════════════════════════════════════════ */
-
-/* Tablet: 768px – 1023px */
 @media (max-width: 1023px) {
   .dashboard {
-    padding: var(--space-md) var(--space-lg);
+    padding: var(--space-lg);
   }
 
-  /* Top metrics: 2 columns on tablet */
   .metrics-row {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  /* Secondary metrics: 2 columns, no spacers needed */
   .metrics-row--secondary {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  /* Hide spacer divs on tablet — no empty cells needed */
-  .metrics-row__spacer {
-    display: none;
-  }
-
-  /* Bottom two sections stack vertically */
   .dashboard__bottom {
     grid-template-columns: 1fr;
   }
 }
 
-/* Mobile: up to 767px */
 @media (max-width: 767px) {
   .dashboard {
-    padding: var(--space-sm) var(--space-md);
+    padding: var(--space-md);
     gap: var(--space-md);
   }
 
-  /* Single column metric cards */
   .metrics-row,
   .metrics-row--secondary {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
   }
 
   .dashboard__title {
-    font-size: 22px;
-  }
-
-  .metric-card__value {
     font-size: 26px;
   }
 
-  /* Shrink the dept name column on mobile */
+  .metric-card__value {
+    font-size: 32px;
+  }
+
   .dept-bar {
-    grid-template-columns: 72px 1fr 24px;
+    grid-template-columns: 90px 1fr 30px;
   }
 }

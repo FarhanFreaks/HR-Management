@@ -153,7 +153,7 @@ dt {
   flex-direction:  column;
   gap:             var(--space-xl);  /* vertical gap between sections */
   min-height:      100vh;
-  background:      var(--bg-page);
+  background:      transparent;      /* Unified with global layout background */
 
   /*
    * Entrance animation — initial hidden state.
@@ -177,107 +177,186 @@ dt {
 
 
 /* ═══════════════════════════════════════════════════════
-   5. PAGE HEADER — Title + Date
+   5. QUICK STATS ROW
    ───────────────────────────────────────────────────────
-   "Employee ID" in bold navy, "Wednesday, May 09, 2026"
-   in muted grey below it.
+   Grid of 3 small widgets at the top of the dashboard.
 ═══════════════════════════════════════════════════════ */
-.emp-dashboard__header {
-  display:        flex;
+.emp-dashboard__stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-lg);
+  animation: slideUp var(--anim-duration) var(--anim-easing) 50ms both;
+}
+
+.quick-stat {
+  background: var(--bg-info-card);
+  border-radius: var(--radius-md);
+  padding: var(--space-md) var(--space-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  box-shadow: var(--shadow-info-card);
+  border: 1px solid var(--border-card);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.quick-stat:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.quick-stat__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.bg-blue { background-color: #E0E7FF; }
+.bg-pink { background-color: #FCE7F3; }
+.bg-yellow { background-color: #FEF3C7; }
+
+.quick-stat__info {
+  display: flex;
   flex-direction: column;
-  gap:            var(--space-xs);
 }
 
-/* "Employee ID" — large bold heading matching screenshot */
-.emp-dashboard__title {
-  font-family:    var(--font-display);
-  font-size:      30px;
-  font-weight:    700;
-  color:          var(--text-heading);
-  letter-spacing: -0.02em;   /* tighter tracking for display sizes */
-  line-height:    1.1;
+.quick-stat__title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-sub);
+  margin-bottom: 2px;
 }
 
-/* "Wednesday, May 09, 2026" — muted subtitle beneath the title */
-.emp-dashboard__date {
-  font-size:   14px;
-  font-weight: 400;
-  color:       var(--text-date);
+.quick-stat__value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-heading);
 }
 
 
 /* ═══════════════════════════════════════════════════════
-   6. EMPLOYEE ID CARD — .emp-card
+   6. EMPLOYEE ID CARD (Modern & Creative)
    ───────────────────────────────────────────────────────
-   Large lavender tile. Two-column flex:
-     Left  — avatar SVG wrapped in a circle area
-     Right — definition list with Name / ID / Department
 ═══════════════════════════════════════════════════════ */
 .emp-card {
-  background:    var(--bg-id-card);
-  border-radius: var(--radius-lg);
-  padding:       var(--space-xl) var(--space-2xl);
-  display:       flex;
-  align-items:   center;
-  gap:           var(--space-2xl);   /* space between avatar and text block */
-  box-shadow:    var(--shadow-id-card);
-
-  /*
-   * Staggered animation delay — this card appears slightly
-   * after the header for a sequential reveal effect.
-   */
-  animation: slideUp var(--anim-duration) var(--anim-easing) 100ms both;
+  position: relative;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.2) 100%);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 24px;
+  padding: 40px;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.05), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: slideUp 380ms var(--ease) 100ms both;
 }
 
-/* ── Avatar column ── */
+.emp-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(31, 38, 135, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+}
+
+.emp-card__bg-decoration {
+  position: absolute;
+  top: -80px;
+  right: -50px;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.emp-card__content {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+  position: relative;
+  z-index: 1;
+}
+
 .emp-card__avatar-wrap {
-  flex-shrink:     0;    /* avatar never shrinks even on narrow screens */
-  width:           130px;
-  display:         flex;
-  align-items:     center;
+  flex-shrink: 0;
+}
+
+.emp-card__avatar-img {
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 12px 32px rgba(99, 102, 241, 0.25);
+  border: 6px solid #fff;
+}
+
+.emp-card__avatar-placeholder {
+  width: 132px;
+  height: 132px;
+  background: linear-gradient(135deg, #6366F1 0%, #A855F7 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
   justify-content: center;
-}
-
-/* The SVG icon fills its container's width */
-.emp-card__avatar-svg {
-  width:  100%;
-  height: auto;
-}
-
-/* ── Details column — definition list ── */
-.emp-card__details {
-  display:        flex;
-  flex-direction: column;
-  gap:            var(--space-lg);   /* vertical gap between each detail row */
-}
-
-/* A single label + value pair in the details column */
-.emp-card__row {
-  display:     flex;
-  align-items: baseline;   /* align text baselines for mixed font sizes */
-  gap:         var(--space-md);
-}
-
-/* "Employee Name:" / "Employee ID:" / "Employee Dept :" labels */
-.emp-card__field-label {
-  font-size:   17px;
+  font-size: 56px;
   font-weight: 700;
-  color:       var(--text-label);
-  white-space: nowrap;   /* label never wraps to a second line */
-  min-width:   175px;    /* right-aligns all values consistently */
+  color: #fff;
+  box-shadow: 0 12px 32px rgba(99, 102, 241, 0.25);
+  border: 6px solid #fff;
 }
 
-/* The actual value — "Ram", "EMDS101", "Design" */
-.emp-card__field-value {
-  font-size:   17px;
-  font-weight: 400;
-  color:       var(--text-value);
+.emp-card__details {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-/* Monospace variant for the ID code (EMDS101) — makes digits fixed-width */
-.emp-card__field-value--mono {
-  font-family: 'DM Mono', 'Courier New', monospace;
-  letter-spacing: 0.04em;
+.emp-card__name {
+  font-size: 32px;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.emp-card__badges {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.emp-card__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 100px;
+  font-size: 14px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  color: #475569;
+}
+
+.emp-card__badge--dept {
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.emp-card__badge--id {
+  font-family: 'DM Sans', monospace;
+  color: #64748b;
+  background: rgba(241, 245, 249, 0.8);
+}
+
+.badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
 }
 
 
@@ -307,9 +386,15 @@ dt {
   padding:       var(--space-lg) var(--space-xl);
   box-shadow:    var(--shadow-info-card);
   border:        1px solid var(--border-card);
+  transition:    transform 0.3s ease, box-shadow 0.3s ease;
 
   /* Staggered animation — cards appear after the ID card */
   animation: slideUp var(--anim-duration) var(--anim-easing) 200ms both;
+}
+
+.info-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
 /* "Recent Announcements" / "Upcoming Events" section heading */
@@ -344,6 +429,15 @@ dt {
   display:     flex;
   align-items: flex-start;
   gap:         var(--space-md);
+  padding: 6px;
+  border-radius: 8px;
+  transition: background 0.2s ease, transform 0.2s ease;
+  cursor: pointer;
+}
+
+.announce-item:hover {
+  background: #f8fafc;
+  transform: translateX(4px);
 }
 
 /* The coloured circle bullet — size from --dot-size token */
@@ -389,6 +483,15 @@ dt {
   display:     flex;
   align-items: center;    /* vertically centre bullet with single-line label */
   gap:         var(--space-md);
+  padding: 6px;
+  border-radius: 8px;
+  transition: background 0.2s ease, transform 0.2s ease;
+  cursor: pointer;
+}
+
+.event-item:hover {
+  background: #f8fafc;
+  transform: translateX(4px);
 }
 
 /* Event label text */
@@ -428,6 +531,136 @@ dt {
 
 
 /* ═══════════════════════════════════════════════════════
+  11. NEW WIDGETS (ATTENDANCE & PAYSLIPS)
+   ───────────────────────────────────────────────────────
+═══════════════════════════════════════════════════════ */
+
+/* ── Attendance Summary ── */
+.att-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xl);
+  padding: var(--space-sm) 0;
+}
+
+.att-summary__circle {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: conic-gradient(#3B82F6 var(--pct), #E9EEF6 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.att-summary__val {
+  background: var(--bg-info-card);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-label);
+}
+
+.att-summary__stats {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.att-summary__label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-sub);
+}
+
+.att-summary__days {
+  font-size: 14px;
+  color: var(--text-value);
+}
+
+.att-summary__days strong {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+/* ── Payslip Item ── */
+.payslip-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-radius: 8px;
+  transition: background 0.2s ease, transform 0.2s ease;
+  cursor: pointer;
+}
+
+.payslip-item:hover {
+  background: #f8fafc;
+  transform: translateX(4px);
+}
+
+.payslip-item__info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.payslip-item__icon {
+  font-size: 22px;
+  background: #F3F4FB;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.payslip-item__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.payslip-item__month {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-label);
+}
+
+.payslip-item__pay {
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+.payslip-item__download {
+  color: var(--text-sub);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.payslip-item__download:hover {
+  background: #EEF2FF;
+  color: #3B5BDB;
+}
+
+/* ═══════════════════════════════════════════════════════
   12. ENTRANCE ANIMATION — @keyframes slideUp
    ───────────────────────────────────────────────────────
    Used by .emp-card and .info-card for their staggered
@@ -462,6 +695,10 @@ dt {
 @media (max-width: 1023px) {
   .emp-dashboard {
     padding: var(--space-lg) var(--space-xl);
+  }
+
+  .emp-dashboard__stats {
+    grid-template-columns: 1fr;
   }
 
   /* Tighten up the ID card on tablet */

@@ -1,6 +1,17 @@
 import { useState, useEffect } from "react";
 import "./RecruitmentModule.css";
 import { supabase } from "../../config/supabaseClient";
+import { 
+  FaBriefcase, 
+  FaMapMarkerAlt, 
+  FaClock, 
+  FaMoneyBillWave, 
+  FaCalendarAlt, 
+  FaUserTie, 
+  FaSearch, 
+  FaBuilding,
+  FaTimes
+} from "react-icons/fa";
 
 const deptColors = {
   Engineering: "#fde8e8",
@@ -22,6 +33,7 @@ export default function RecruitmentModule() {
   const [tab, setTab] = useState("overview");
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
+  const [selectedJob, setSelectedJob] = useState(null);
 
   const [jobs, setJobs] = useState([]);
   const [deptCounts, setDeptCounts] = useState({});
@@ -38,16 +50,18 @@ export default function RecruitmentModule() {
         
       if (!error && data) {
         const formattedJobs = data.map(j => {
-          const postedDate = new Date(j.posted_date);
+          const postedDate = new Date(j.posted_date || j.created_at || new Date());
           const postedStr = `${postedDate.getDate()} ${postedDate.toLocaleString('default', { month: 'short' })}`;
           
           return {
+            ...j,
             id: j.id,
             title: j.title,
             dept: j.department,
-            deptColor: deptColors[j.department] || "#f3f4f6", // fallback gray
-            deptText: deptTextColors[j.department] || "#374151",
-            type: `${j.job_type || 'Full-Time'} (${j.work_mode || 'Remote'})`,
+            deptColor: deptColors[j.department] || "#f1f5f9", // fallback gray
+            deptText: deptTextColors[j.department] || "#475569",
+            type: `${j.job_type || 'Full-Time'}`,
+            workMode: j.work_mode || 'Remote',
             posted: postedStr
           };
         });
@@ -78,7 +92,11 @@ export default function RecruitmentModule() {
 
   return (
     <div className="recruitment-container">
-     
+      <div className="recruitment-header">
+        <h1 className="page-title">Internal Careers</h1>
+        <div className="header-divider"></div>
+        <p className="page-subtitle">Discover and apply for opportunities within the organization</p>
+      </div>
 
       <div className="tabs">
         {["overview", "jobopenings"].map((t) => (
@@ -87,7 +105,7 @@ export default function RecruitmentModule() {
             className={`tab-btn ${tab === t ? "active" : ""}`}
             onClick={() => setTab(t)}
           >
-            {t === "overview" ? "Overview" : "Job Openings"}
+            {t === "overview" ? "Dashboard" : "All Opportunities"}
           </button>
         ))}
       </div>
@@ -95,17 +113,18 @@ export default function RecruitmentModule() {
       {tab === "overview" && (
         <>
           <div className="active-card">
-            <div className="active-label">Active Openings</div>
+            <div className="active-label">Current Opportunities</div>
             <div className="active-count">{jobs.length}</div>
-            <div className="active-subtitle">Currently Hiring</div>
+            <div className="active-subtitle">Active roles across the organization</div>
           </div>
 
           <div className="filters">
             <div className="search-box">
+              <FaSearch className="search-icon" />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search Job..."
+                placeholder="Search job titles..."
               />
             </div>
 
@@ -114,7 +133,7 @@ export default function RecruitmentModule() {
               onChange={(e) => setFilter(e.target.value)}
             >
               {depts.map((d) => (
-                <option key={d}>{d}</option>
+                <option key={d}>{d === "All" ? "All Departments" : d}</option>
               ))}
             </select>
           </div>
@@ -123,43 +142,47 @@ export default function RecruitmentModule() {
             {loading ? (
               <p style={{ padding: "20px" }}>Loading active jobs...</p>
             ) : filtered.length === 0 ? (
-              <p style={{ padding: "20px" }}>No jobs found.</p>
+              <p style={{ padding: "20px" }}>No jobs found matching your criteria.</p>
             ) : (
               filtered.map((job) => (
-                <div className="job-card" key={job.id}>
-                  <h3>{job.title}</h3>
-
+                <div className="job-card" key={job.id} onClick={() => setSelectedJob(job)}>
                   <span
                     className="dept-badge"
-                    style={{
-                      background: job.deptColor,
-                      color: job.deptText,
-                    }}
+                    style={{ background: job.deptColor, color: job.deptText }}
                   >
                     {job.dept}
                   </span>
+                  
+                  <h3>{job.title}</h3>
 
-                  <p>
-                    <strong>Type:</strong> {job.type}
-                  </p>
-
-                  <p>
-                    <strong>Posted:</strong> {job.posted}
-                  </p>
+                  <div className="job-meta">
+                    <div className="job-meta-item">
+                      <FaBriefcase className="job-meta-icon" />
+                      {job.type}
+                    </div>
+                    <div className="job-meta-item">
+                      <FaMapMarkerAlt className="job-meta-icon" />
+                      {job.workMode}
+                    </div>
+                    <div className="job-meta-item">
+                      <FaClock className="job-meta-icon" />
+                      Posted: {job.posted}
+                    </div>
+                  </div>
                 </div>
               ))
             )}
           </div>
 
           <div className="department-section">
-            <h3>Open positions by department</h3>
-
+            <h3>Opportunities by Department</h3>
             <div className="department-grid">
               {Object.entries(deptCounts).map(([dept, count]) => (
                 <div
                   key={dept}
                   className="department-card"
-                  style={{ background: deptColors[dept] }}
+                  style={{ background: deptColors[dept] || "#f1f5f9", color: deptTextColors[dept] || "#475569" }}
+                  onClick={() => { setFilter(dept); window.scrollTo({ top: 300, behavior: 'smooth' }); }}
                 >
                   <span>{dept}</span>
                   <h2>{count}</h2>
@@ -175,31 +198,122 @@ export default function RecruitmentModule() {
           {loading ? (
             <p style={{ padding: "20px" }}>Loading...</p>
           ) : jobs.length === 0 ? (
-            <p style={{ padding: "20px" }}>No job openings currently available.</p>
+            <p style={{ padding: "20px" }}>No opportunities currently available.</p>
           ) : (
             jobs.map((job) => (
-            <div className="opening-card" key={job.id}>
+            <div className="opening-card" key={job.id} onClick={() => setSelectedJob(job)}>
               <div>
-                <h3>{job.title}</h3>
-
                 <span
                   className="dept-badge"
-                  style={{
-                    background: job.deptColor,
-                    color: job.deptText,
-                  }}
+                  style={{ background: job.deptColor, color: job.deptText }}
                 >
                   {job.dept}
                 </span>
+                <h3>{job.title}</h3>
               </div>
 
               <div className="opening-info">
-                <p>{job.type}</p>
-                <span>Posted: {job.posted}</span>
+                <div className="opening-info-item">
+                  <FaBriefcase className="job-meta-icon" />
+                  {job.type}
+                </div>
+                <div className="opening-info-item">
+                  <FaMapMarkerAlt className="job-meta-icon" />
+                  {job.workMode}
+                </div>
+                <div className="opening-info-item">
+                  <FaClock className="job-meta-icon" />
+                  {job.posted}
+                </div>
               </div>
             </div>
             ))
           )}
+        </div>
+      )}
+
+      {selectedJob && (
+        <div className="emp-job-view-overlay" onClick={() => setSelectedJob(null)}>
+          <div className="emp-job-view-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="emp-job-view-header">
+              <h2>{selectedJob.title}</h2>
+              <button className="emp-close-btn" onClick={() => setSelectedJob(null)}>
+                <FaTimes />
+              </button>
+            </div>
+            
+            <div className="emp-job-view-body">
+              <div className="emp-job-summary-box">
+                <div className="summary-item">
+                  <span className="summary-label"><FaBuilding /> Department</span>
+                  <span className="summary-value">{selectedJob.department}</span>
+                </div>
+                <div className="summary-item">
+                  <span className="summary-label"><FaBriefcase /> Job Type</span>
+                  <span className="summary-value">{selectedJob.job_type || selectedJob.type}</span>
+                </div>
+                <div className="summary-item">
+                  <span className="summary-label"><FaMapMarkerAlt /> Work Mode</span>
+                  <span className="summary-value">{selectedJob.work_mode || "On-site"}</span>
+                </div>
+                <div className="summary-item">
+                  <span className="summary-label"><FaMoneyBillWave /> Salary</span>
+                  <span className="summary-value">
+                    {selectedJob.currency || "INR"} {Number(selectedJob.salary_min).toLocaleString()} – {Number(selectedJob.salary_max).toLocaleString()}
+                  </span>
+                </div>
+                <div className="summary-item">
+                  <span className="summary-label"><FaCalendarAlt /> Deadline</span>
+                  <span className="summary-value">{selectedJob.deadline || "Not specified"}</span>
+                </div>
+                <div className="summary-item">
+                  <span className="summary-label"><FaUserTie /> Hiring Manager</span>
+                  <span className="summary-value">{selectedJob.hiring_manager || "HR Team"}</span>
+                </div>
+              </div>
+              
+              <div className="emp-job-details-text">
+                {selectedJob.description && (
+                  <div className="emp-job-section">
+                    <h4>Description</h4>
+                    <p>{selectedJob.description}</p>
+                  </div>
+                )}
+                {selectedJob.responsibilities && (
+                  <div className="emp-job-section">
+                    <h4>Responsibilities</h4>
+                    {Array.isArray(selectedJob.responsibilities) ? (
+                      <ul>
+                        {selectedJob.responsibilities.map((r, i) => <li key={i}>{r}</li>)}
+                      </ul>
+                    ) : (
+                      <p style={{whiteSpace: 'pre-line'}}>{selectedJob.responsibilities}</p>
+                    )}
+                  </div>
+                )}
+                {selectedJob.skills && (
+                  <div className="emp-job-section">
+                    <h4>Required Skills</h4>
+                    <div className="emp-job-skills">
+                      {Array.isArray(selectedJob.skills)
+                        ? selectedJob.skills.map((s, i) => <span className="skill-tag" key={i}>{s}</span>)
+                        : String(selectedJob.skills).split(',').map((s, i) => s.trim() && <span className="skill-tag" key={i}>{s.trim()}</span>)
+                      }
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="emp-job-view-footer">
+              <button className="emp-apply-btn" onClick={() => {
+                alert("Application submitted successfully!");
+                setSelectedJob(null);
+              }}>
+                Submit Application
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

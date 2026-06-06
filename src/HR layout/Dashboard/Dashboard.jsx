@@ -99,7 +99,7 @@ export default function Dashboard() {
         
         const emps = employeesData || [];
         const totalEmployees = emps.length;
-        const activeEmployees = emps.filter(e => e.status?.toLowerCase() === "active").length;
+        const totalActiveEmployed = emps.filter(e => e.status?.toLowerCase() === "active").length;
         
         // Calculate departments
         const deptCounts = {};
@@ -126,11 +126,26 @@ export default function Dashboard() {
         // 2. Fetch Leave Requests
         const { data: leaveData } = await supabase
           .from("leave_requests")
-          .select("status");
+          .select("status, start_date, end_date, employee_id");
         
         const leaves = leaveData || [];
         const pendingLeaves = leaves.filter(l => l.status === "Pending").length;
-        const onLeave = leaves.filter(l => l.status === "Approved").length; // Approximation for currently on leave
+        
+        // Calculate who is on leave (including upcoming leaves that haven't ended yet)
+        const todayStr = new Date().toISOString().split("T")[0];
+        const onLeaveEmployees = new Set();
+        
+        leaves.forEach(l => {
+          // If a leave is approved and hasn't ended yet, count them as "On Leave"
+          // This ensures newly approved future leaves immediately show up on the dashboard
+          if (l.status === "Approved" && l.end_date >= todayStr) {
+            onLeaveEmployees.add(l.employee_id);
+          }
+        });
+        const onLeave = onLeaveEmployees.size;
+
+        // Active (Present) employees are total actively employed MINUS those currently on leave
+        const activeEmployees = Math.max(0, totalActiveEmployed - onLeave);
 
         // 3. Fetch Payroll for current month
         const currentMonth = new Date().getMonth() + 1;
@@ -156,13 +171,21 @@ export default function Dashboard() {
           formattedPayroll = `₹${(totalPayroll / 1000).toFixed(1)}k`;
         }
 
+        // 4. Fetch Open Positions
+        const { data: jobsData } = await supabase
+          .from("job_openings")
+          .select("status");
+          
+        const jobs = jobsData || [];
+        const openPositions = jobs.filter(j => j.status === "Active").length;
+
         // Set the metrics state
         setMetrics({
           totalEmployees,
           activeEmployees,
           onLeave,
           monthlyPayroll: formattedPayroll,
-          openPositions: 0, // Hardcoded, pending recruitment module
+          openPositions,
           pendingLeaves
         });
 
@@ -191,7 +214,6 @@ export default function Dashboard() {
   return (
     <main className="dashboard">
       <header className="dashboard__header">
-        <h1 className="dashboard__title">Overview</h1>
         <p className="dashboard__date">{getTodayString()}</p>
       </header>
       

@@ -62,7 +62,7 @@ const Recruitment = () => {
   }
 
   return (
-    <div className="recruitment-wrapper">
+    <div className="page-wrapper">
       <Header setJobOpenings={setJobOpenings} />
       <Tabs activeTab={activeTab} setActiveTab={setActiveTab} />
       

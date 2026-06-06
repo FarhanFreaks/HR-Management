@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import JobFilter from "./JobFilter";
 import JobCard from "./JobCard";
+import PostJobModal from "./PostJobModal";
 import { supabase } from "../../config/supabaseClient";
 import "./JobOpenings.css";
 
@@ -9,6 +10,7 @@ const JobOpenings = ({ jobOpenings, setJobOpenings }) => {
     search: "", department: "All", jobType: "All", workMode: "All", status: "All",
   });
   const [selectedJob, setSelectedJob] = useState(null);
+  const [editingJob, setEditingJob] = useState(null);
 
   const filtered = jobOpenings.filter((j) => {
     const s = filters.search.toLowerCase();
@@ -45,7 +47,7 @@ const JobOpenings = ({ jobOpenings, setJobOpenings }) => {
   };
 
   const handleEdit = (job) => {
-    alert(`Edit job operation: ${job.title}`);
+    setEditingJob(job);
   };
 
   const handleView = (job) => {
@@ -116,7 +118,18 @@ const JobOpenings = ({ jobOpenings, setJobOpenings }) => {
           <div className="job-view-modal" onClick={(e) => e.stopPropagation()}>
             <div className="job-view-header">
               <h2>{selectedJob.title}</h2>
-              <button onClick={() => setSelectedJob(null)}>✕</button>
+              <div style={{display: 'flex', gap: '8px'}}>
+                <button 
+                  style={{width: 'auto', padding: '0 12px', background: 'var(--accent-blue-bg)', color: 'var(--accent-blue-text)', fontWeight: '600'}} 
+                  onClick={() => {
+                    handleEdit(selectedJob);
+                    setSelectedJob(null);
+                  }}
+                >
+                  Edit
+                </button>
+                <button onClick={() => setSelectedJob(null)}>✕</button>
+              </div>
             </div>
             <div className="job-view-body">
               <div className="job-view-grid">
@@ -131,9 +144,52 @@ const JobOpenings = ({ jobOpenings, setJobOpenings }) => {
                 <div><span>Status</span><strong>{selectedJob.status}</strong></div>
                 <div><span>Hiring Manager</span><strong>{selectedJob.hiringManager || selectedJob.hiring_manager}</strong></div>
               </div>
+              
+              <div className="job-details-text">
+                {selectedJob.description && (
+                  <div className="job-section">
+                    <h4>Description</h4>
+                    <p>{selectedJob.description}</p>
+                  </div>
+                )}
+                {selectedJob.responsibilities && (
+                  <div className="job-section">
+                    <h4>Responsibilities</h4>
+                    {Array.isArray(selectedJob.responsibilities) ? (
+                      <ul>
+                        {selectedJob.responsibilities.map((r, i) => <li key={i}>{r}</li>)}
+                      </ul>
+                    ) : (
+                      <p style={{whiteSpace: 'pre-line'}}>{selectedJob.responsibilities}</p>
+                    )}
+                  </div>
+                )}
+                {selectedJob.skills && (
+                  <div className="job-section">
+                    <h4>Required Skills</h4>
+                    <div className="job-skills">
+                      {Array.isArray(selectedJob.skills)
+                        ? selectedJob.skills.map((s, i) => <span key={i}>{s}</span>)
+                        : String(selectedJob.skills).split(',').map((s, i) => s.trim() && <span key={i}>{s.trim()}</span>)
+                      }
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
+      )}
+
+      {editingJob && (
+        <PostJobModal
+          initialData={editingJob}
+          onClose={() => setEditingJob(null)}
+          onJobPosted={(updatedJob) => {
+            setJobOpenings(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j));
+            setEditingJob(null);
+          }}
+        />
       )}
     </div>
   );

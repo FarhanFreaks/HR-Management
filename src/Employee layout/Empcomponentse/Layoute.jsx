@@ -3,11 +3,10 @@ import Sidebar from './Sidebare';
 import './Layoute.css';
 
 const pageTitles = {
-  '/dashboard': 'Dashboard',
-  '/employee': 'Employee',
-  '/leave': 'Leave',
-  '/recruitment': 'Recruitment',
-  '/login-info': 'Login Information',
+  '/employee-dashboard': 'Dashboard',
+  '/employee-recruitment': 'Recruitment',
+  '/employee-profile': 'Employee Profile',
+  '/employee-leave': 'Leave Management',
 };
 
 export default function Layoute() {

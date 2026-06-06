@@ -80,8 +80,8 @@ export default function Leave() {
 
   return (
     <>
-      <div className="app">
-        <main className="main">
+      <div className="leave-module-wrapper">
+        <div className="leave-main">
           <div className="form-wrapper">
             <div className="form-card">
               <h1 className="form-title">Leave Request Form</h1>
@@ -180,7 +180,7 @@ export default function Leave() {
               <span className="legend-item">Earned - Earned Leave</span>
             </div>
           </div>
-        </main>
+        </div>
       </div>
 
       <div className={`toast${toast ? " show" : ""}`}>

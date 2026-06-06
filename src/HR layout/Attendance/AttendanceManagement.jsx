@@ -6,12 +6,23 @@ export default function AttendanceManagement() {
   const [records, setRecords] = useState([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  
+  const getTodayStr = () => {
+    const now = new Date();
+    const localDate = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+    return localDate.toISOString().split('T')[0];
+  };
+  const [filterDate, setFilterDate] = useState(getTodayStr());
+
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
   const fetchAttendance = useCallback(async () => {
     setLoading(true);
     setErrorMessage("");
+    
+    // We use the currently selected filterDate for queries and calculations
+    const targetDateStr = filterDate;
 
     const { data: attendanceData, error } = await supabase
       .from("attendance")
@@ -28,7 +39,7 @@ export default function AttendanceManagement() {
           departments (name)
         )
       `)
-      .order("date", { ascending: false })
+      .eq("date", targetDateStr)
       .order("punch_in", { ascending: false });
 
     const { data: employeesData } = await supabase
@@ -49,13 +60,16 @@ export default function AttendanceManagement() {
       let fetchedRecords = attendanceData || [];
       
       const now = new Date();
-      if (now.getHours() >= 9) {
-        const localDate = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
-        const todayStr = localDate.toISOString().split('T')[0];
+      // Only generate "Absent" records if the selected date is today (or in the past) and it's past 9 AM
+      // For simplicity in a prototype, we'll apply it if they query today's date past 9 AM, 
+      // or if they query a past date
+      const isPastOrToday = new Date(targetDateStr) <= new Date(getTodayStr());
+      
+      if (isPastOrToday && (targetDateStr !== getTodayStr() || now.getHours() >= 9)) {
         
         const punchedInUserIds = new Set(
           fetchedRecords
-            .filter((r) => r.date === todayStr)
+            .filter((r) => r.date === targetDateStr)
             .map((r) => r.employee_id)
         );
 
@@ -63,9 +77,9 @@ export default function AttendanceManagement() {
         const missingEmployees = activeEmployees.filter(emp => !punchedInUserIds.has(emp.id));
 
         const virtualRecords = missingEmployees.map(emp => ({
-          id: `virtual-absent-${emp.id}-${todayStr}`,
+          id: `virtual-absent-${emp.id}-${targetDateStr}`,
           employee_id: emp.id,
-          date: todayStr,
+          date: targetDateStr,
           punch_in: null,
           punch_out: null,
           status: "Absent",
@@ -90,7 +104,7 @@ export default function AttendanceManagement() {
     }
 
     setLoading(false);
-  }, []);
+  }, [filterDate]);
 
   useEffect(() => {
     fetchAttendance();
@@ -187,6 +201,13 @@ export default function AttendanceManagement() {
         <div className="attendance-card__header">
           <h2 className="attendance-card__title">Live Attendance Logs</h2>
           <div className="attendance-controls">
+            <input
+              type="date"
+              className="attendance-input"
+              style={{ maxWidth: "160px" }}
+              value={filterDate}
+              onChange={(event) => setFilterDate(event.target.value)}
+            />
             <input
               type="text"
               className="attendance-input"

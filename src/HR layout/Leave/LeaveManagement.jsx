@@ -108,17 +108,6 @@ export default function LeaveManagement() {
       .eq("id", id);
       
     if (!error) {
-      const { error: emailError } = await supabase.functions.invoke("send-leave-status-email", {
-        body: {
-          requestId: id,
-          status: newStatus,
-        },
-      });
-
-      if (emailError) {
-        alert(`Leave request ${newStatus.toLowerCase()}, but email could not be sent: ${emailError.message}`);
-      }
-
       await fetchData();
     } else {
       alert("Error updating leave request: " + error.message);

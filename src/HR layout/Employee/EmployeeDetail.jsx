@@ -90,60 +90,72 @@ const EmployeeDetail = () => {
 
   return (
     <div className="page-wrapper">
-      <div className="topbar">
-        <h1 className="page-title">Employee Profile</h1>
-        <button className="back-btn" onClick={() => navigate(-1)}>
-          ← Back to Directory
-        </button>
-      </div>
-
-      <hr className="divider" />
+      <button className="back-link" onClick={() => navigate(-1)}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="back-icon">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        Back to Directory
+      </button>
 
       <div className="detail-card">
-        {/* Profile Header */}
-        <div className="profile-row">
-          <div className="avatar avatar-lg">{initials}</div>
-          <div className="profile-text">
-            <h2 className="profile-name">{name}</h2>
-            <span className="profile-desig">{employee.designations?.title || "No Designation"}</span>
+        <div className="profile-header-content">
+          <div className="avatar avatar-xl">{initials}</div>
+          <div className="profile-text-wrap">
+            <div className="profile-titles">
+              <h2 className="profile-name-large">{name}</h2>
+              <span className="profile-desig-badge">{employee.designations?.title || "No Designation"}</span>
+            </div>
+            <div className="profile-actions">
+               <span className={`status-badge ${employee.status?.toLowerCase() === 'active' ? 'status-active' : 'status-inactive'}`}>
+                {employee.status || "Active"}
+              </span>
+            </div>
           </div>
         </div>
 
         <hr className="card-divider" />
 
-        {/* Information Grid */}
-        <div className="info-grid">
-          <div className="info-col">
-            <span className="info-label">Employee ID</span>
-            <span className="id-chip">{employee.emp_id || "N/A"}</span>
+        {/* Modern Information Grid with Icons */}
+        <div className="info-grid-modern">
+          <div className="info-card">
+            <div className="info-icon-wrap" style={{background: 'var(--accent-blue-bg)', color: 'var(--accent-blue-text)'}}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </div>
+            <div className="info-data">
+              <span className="info-label-modern">Employee ID</span>
+              <span className="info-value">{employee.emp_id || "N/A"}</span>
+            </div>
           </div>
           
-          <div className="info-col">
-            <span className="info-label">Department</span>
-            <span className="dept-badge" style={{ width: 'fit-content', background: '#f1f3f5' }}>
-              {employee.departments?.name || "N/A"}
-            </span>
+          <div className="info-card">
+            <div className="info-icon-wrap" style={{background: 'var(--accent-purple-bg)', color: 'var(--accent-purple-text)'}}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+            </div>
+            <div className="info-data">
+              <span className="info-label-modern">Department</span>
+              <span className="info-value">{employee.departments?.name || "N/A"}</span>
+            </div>
           </div>
 
-          <div className="info-col">
-            <span className="info-label">System Role</span>
-            <span style={{ textTransform: 'capitalize', color: '#666' }}>
-              {employee.profiles?.role || "Employee"}
-            </span>
+          <div className="info-card">
+            <div className="info-icon-wrap" style={{background: 'var(--accent-amber-bg)', color: 'var(--accent-amber-text)'}}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            </div>
+            <div className="info-data">
+              <span className="info-label-modern">System Role</span>
+              <span className="info-value" style={{ textTransform: 'capitalize' }}>{employee.profiles?.role || "Employee"}</span>
+            </div>
           </div>
 
-          <div className="info-col">
-            <span className="info-label">Joining Date</span>
-            <span style={{ color: '#555' }}>
-              {employee.joining_date ? new Date(employee.joining_date).toLocaleDateString() : "Not Set"}
-            </span>
-          </div>
-
-          <div className="info-col">
-            <span className="info-label">Current Status</span>
-            <span className={`status-badge ${employee.status?.toLowerCase() === 'active' ? 'status-active' : 'status-inactive'}`}>
-              {employee.status || "Active"}
-            </span>
+          <div className="info-card">
+            <div className="info-icon-wrap" style={{background: 'var(--accent-teal-bg)', color: 'var(--accent-teal-text)'}}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            </div>
+            <div className="info-data">
+              <span className="info-label-modern">Joining Date</span>
+              <span className="info-value">{employee.joining_date ? new Date(employee.joining_date).toLocaleDateString() : "Not Set"}</span>
+            </div>
           </div>
         </div>
 

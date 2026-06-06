@@ -140,132 +140,128 @@ export default function Payroll() {
 
   return (
     <div className="page-wrapper">
-      <div className="topbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h1 style={{ fontSize: '24px', color: '#1B2559' }}>Payroll Module</h1>
-        
-        <div style={{ display: 'flex', gap: '10px' }}>
-          {selectedIds.size > 0 && (
-            <>
-              <button 
-                onClick={() => bulkUpdateStatus('Reviewed')}
-                disabled={processing}
-                style={{ background: '#3B82F6', color: 'white', padding: '10px 15px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}
-              >
-                Mark {selectedIds.size} Reviewed
-              </button>
-              <button 
-                onClick={() => bulkUpdateStatus('Approved')}
-                disabled={processing}
-                style={{ background: '#10B981', color: 'white', padding: '10px 15px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}
-              >
-                Approve {selectedIds.size}
-              </button>
-            </>
-          )}
-          <button 
-            onClick={exportAndEmailFinance} 
-            disabled={processing || payrolls.length === 0}
-            style={{
-              background: '#15803D', color: 'white', padding: '10px 20px', 
-              borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer'
-            }}
-          >
-            {processing ? "Processing..." : "📊 Export & Email to Finance"}
-          </button>
+      <div className="topbar-actions">
+        {selectedIds.size > 0 && (
+          <>
+            <button 
+              className="action-btn btn-reviewed"
+              onClick={() => bulkUpdateStatus('Reviewed')}
+              disabled={processing}
+            >
+              Mark {selectedIds.size} Reviewed
+            </button>
+            <button 
+              className="action-btn btn-approved"
+              onClick={() => bulkUpdateStatus('Approved')}
+              disabled={processing}
+            >
+              Approve {selectedIds.size}
+            </button>
+          </>
+        )}
+        <button 
+          className="action-btn btn-export"
+          onClick={exportAndEmailFinance} 
+          disabled={processing || payrolls.length === 0}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '18px', height: '18px' }}>
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          {processing ? "Processing..." : "Export & Email to Finance"}
+        </button>
+      </div>
+
+      <div className="stats-grid">
+        <div className="stat-card">
+          <div className="stat-title">GROSS EXPENSE</div>
+          <div className="stat-num text-navy">₹{totalGross.toLocaleString()}</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-title">TOTAL DEDUCTIONS</div>
+          <div className="stat-num text-red">-₹{totalDeductions.toLocaleString()}</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-title">NET DISBURSED</div>
+          <div className="stat-num text-green">₹{totalNet.toLocaleString()}</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-title">PENDING REVIEW</div>
+          <div className="stat-num text-amber">{pendingCount}</div>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '30px' }}>
-        <div className="stat-card" style={{ background: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-          <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 'bold' }}>GROSS EXPENSE</div>
-          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1B2559' }}>₹{totalGross.toLocaleString()}</div>
+      <div className="table-card">
+        <div className="table-responsive">
+          <table className="payroll-table">
+            <thead>
+              <tr>
+                <th style={{ width: '60px' }}>
+                  <input 
+                    type="checkbox" 
+                    className="checkbox-custom"
+                    onChange={handleSelectAll} 
+                    checked={payrolls.length > 0 && selectedIds.size === payrolls.length}
+                  />
+                </th>
+                <th>Employee</th>
+                <th>Base Salary</th>
+                <th>Deductions</th>
+                <th>Net Salary</th>
+                <th>Status</th>
+                <th>HR Review Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan="7" style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>Loading Payroll Data...</td></tr>
+              ) : payrolls.length === 0 ? (
+                <tr><td colSpan="7" style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>No payroll records found for this month.</td></tr>
+              ) : (
+                payrolls.map(p => (
+                  <tr key={p.id} className={selectedIds.has(p.id) ? 'selected' : ''}>
+                    <td>
+                      <input 
+                        type="checkbox" 
+                        className="checkbox-custom"
+                        checked={selectedIds.has(p.id)}
+                        onChange={() => handleSelectOne(p.id)}
+                        disabled={p.status === 'Approved' || p.status === 'Paid'}
+                      />
+                    </td>
+                    <td>
+                      <div className="emp-name-bold">{p.employees?.profiles?.full_name || "Unknown"}</div>
+                      <div className="emp-dept">{p.employees?.departments?.name || "Unassigned"}</div>
+                    </td>
+                    <td>₹{Number(p.base_salary).toLocaleString()}</td>
+                    <td className="text-red">-₹{Number(p.total_deductions).toLocaleString()}</td>
+                    <td className="text-green" style={{ fontWeight: '700' }}>₹{Number(p.net_salary).toLocaleString()}</td>
+                    <td>
+                      <span className={`status-badge status-${p.status.toLowerCase()}`}>
+                        {p.status}
+                      </span>
+                    </td>
+                    <td>
+                      {p.status === 'Generated' && (
+                        <button className="action-sm btn-sm-review" onClick={() => updateStatus(p.id, 'Reviewed')}>Mark Reviewed</button>
+                      )}
+                      {p.status === 'Reviewed' && (
+                        <button className="action-sm btn-sm-approve" onClick={() => updateStatus(p.id, 'Approved')}>Approve</button>
+                      )}
+                      {p.status === 'Approved' && (
+                        <span className="text-status-awaiting">Awaiting Finance</span>
+                      )}
+                      {p.status === 'Paid' && (
+                        <span className="text-status-disbursed">✓ Disbursed</span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
-        <div className="stat-card" style={{ background: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-          <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 'bold' }}>TOTAL DEDUCTIONS</div>
-          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#D32F2F' }}>-₹{totalDeductions.toLocaleString()}</div>
-        </div>
-        <div className="stat-card" style={{ background: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-          <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 'bold' }}>NET DISBURSED</div>
-          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#2E7D32' }}>₹{totalNet.toLocaleString()}</div>
-        </div>
-        <div className="stat-card" style={{ background: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-          <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 'bold' }}>PENDING REVIEW</div>
-          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#B45309' }}>{pendingCount}</div>
-        </div>
-      </div>
-
-      <div style={{ background: 'white', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-          <thead style={{ background: '#F8FAFC', borderBottom: '2px solid #E2E8F0' }}>
-            <tr>
-              <th style={{ padding: '16px', width: '40px' }}>
-                <input 
-                  type="checkbox" 
-                  onChange={handleSelectAll} 
-                  checked={payrolls.length > 0 && selectedIds.size === payrolls.length}
-                  style={{ cursor: 'pointer', width: '16px', height: '16px' }}
-                />
-              </th>
-              <th style={{ padding: '16px' }}>Employee</th>
-              <th style={{ padding: '16px' }}>Base Salary</th>
-              <th style={{ padding: '16px' }}>Deductions</th>
-              <th style={{ padding: '16px' }}>Net Salary</th>
-              <th style={{ padding: '16px' }}>Status</th>
-              <th style={{ padding: '16px' }}>HR Review Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr><td colSpan="6" style={{ padding: '20px', textAlign: 'center' }}>Loading Payroll Data...</td></tr>
-            ) : payrolls.length === 0 ? (
-              <tr><td colSpan="6" style={{ padding: '20px', textAlign: 'center' }}>No payroll records found for this month.</td></tr>
-            ) : (
-              payrolls.map(p => (
-                <tr key={p.id} style={{ borderBottom: '1px solid #E2E8F0', background: selectedIds.has(p.id) ? '#F1F5F9' : 'transparent' }}>
-                  <td style={{ padding: '16px' }}>
-                    <input 
-                      type="checkbox" 
-                      checked={selectedIds.has(p.id)}
-                      onChange={() => handleSelectOne(p.id)}
-                      disabled={p.status === 'Approved' || p.status === 'Paid'}
-                      style={{ cursor: p.status === 'Approved' || p.status === 'Paid' ? 'not-allowed' : 'pointer', width: '16px', height: '16px' }}
-                    />
-                  </td>
-                  <td style={{ padding: '16px' }}>
-                    <strong>{p.employees?.profiles?.full_name || "Unknown"}</strong>
-                    <div style={{ fontSize: '12px', color: '#64748B' }}>{p.employees?.departments?.name || "Unassigned"}</div>
-                  </td>
-                  <td style={{ padding: '16px' }}>₹{Number(p.base_salary).toLocaleString()}</td>
-                  <td style={{ padding: '16px', color: '#D32F2F' }}>-₹{Number(p.total_deductions).toLocaleString()}</td>
-                  <td style={{ padding: '16px', color: '#2E7D32', fontWeight: 'bold' }}>₹{Number(p.net_salary).toLocaleString()}</td>
-                  <td style={{ padding: '16px' }}>
-                    <span style={{
-                      padding: '4px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold',
-                      background: p.status === 'Approved' ? '#DCFCE7' : p.status === 'Paid' ? '#DBEAFE' : '#FEF3C7',
-                      color: p.status === 'Approved' ? '#15803D' : p.status === 'Paid' ? '#1D4ED8' : '#B45309'
-                    }}>
-                      {p.status}
-                    </span>
-                  </td>
-                  <td style={{ padding: '16px' }}>
-                    {p.status === 'Generated' && (
-                      <button onClick={() => updateStatus(p.id, 'Reviewed')} style={{ background: '#3B82F6', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer' }}>Mark Reviewed</button>
-                    )}
-                    {p.status === 'Reviewed' && (
-                      <button onClick={() => updateStatus(p.id, 'Approved')} style={{ background: '#10B981', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer' }}>Approve</button>
-                    )}
-                    {p.status === 'Approved' && (
-                      <span style={{ fontSize: '12px', color: '#64748B' }}>Awaiting Finance</span>
-                    )}
-                    {p.status === 'Paid' && (
-                      <span style={{ fontSize: '12px', color: '#1D4ED8', fontWeight: 'bold' }}>✓ Disbursed</span>
-                    )}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
       </div>
     </div>
   );

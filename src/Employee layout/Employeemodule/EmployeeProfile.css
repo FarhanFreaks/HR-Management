@@ -134,7 +134,7 @@ button {
   flex-direction:  column;
   gap:             var(--sp-6);
   min-height:      100vh;
-  background:      var(--bg-page);
+  background:      transparent; /* Unified with global layout background */
 
   /* Initial hidden state for entrance animation */
   opacity:         0;
@@ -197,17 +197,24 @@ button {
    status + edit button pushed to the far right.
 ═══════════════════════════════════════════════════ */
 .hero-card {
-  background:    var(--bg-hero);
-  border:        1px solid var(--border);
+  background: linear-gradient(135deg, rgba(217,220,240,0.8) 0%, rgba(205,212,240,0.4) 100%);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.6);
   border-radius: var(--radius-lg);
   padding:       var(--sp-6) var(--sp-8);
   display:       flex;
   align-items:   center;
   gap:           var(--sp-6);
   box-shadow:    var(--shadow-hero);
+  transition:    transform 0.3s ease, box-shadow 0.3s ease;
 
   /* Staggered entrance — appears after the header */
   animation: slideUp 380ms var(--ease) 100ms both;
+}
+
+.hero-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(27, 45, 122, 0.15);
 }
 
 /* Initials avatar circle — large size in hero */
@@ -223,6 +230,16 @@ button {
   flex-shrink:     0;
   /* bg + color applied inline from EMPLOYEE data */
   letter-spacing:  0.03em;
+}
+
+.hero-card__avatar-img {
+  width:           72px;
+  height:          72px;
+  border-radius:   50%;
+  object-fit:      cover;
+  flex-shrink:     0;
+  box-shadow:      0 4px 12px rgba(6, 95, 70, 0.15);
+  border:          3px solid #ffffff;
 }
 
 /* Identity text block */
@@ -349,9 +366,15 @@ button {
   border-radius: var(--radius-md);
   padding:       var(--sp-5) var(--sp-6);
   box-shadow:    var(--shadow-sm);
+  transition:    transform 0.3s ease, box-shadow 0.3s ease;
 
   /* Staggered entrance — appears slightly after hero */
   animation: slideUp 380ms var(--ease) 200ms both;
+}
+
+.detail-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
 /* Wide variant — spans both grid columns */
@@ -558,6 +581,15 @@ button {
   display:     flex;
   align-items: flex-start;
   gap:         var(--sp-3);
+  padding:     6px;
+  border-radius: 8px;
+  transition:  background 0.2s ease, transform 0.2s ease;
+  cursor:      pointer;
+}
+
+.act-item:hover {
+  background: #f8fafc;
+  transform: translateX(4px);
 }
 
 /* Coloured circle dot bullet */
@@ -684,6 +716,7 @@ button {
 
   .hero-card__name   { font-size: 18px; }
   .hero-card__avatar { width: 56px; height: 56px; font-size: 18px; }
+  .hero-card__avatar-img { width: 56px; height: 56px; }
 
   .ep__title { font-size: 20px; }
 }

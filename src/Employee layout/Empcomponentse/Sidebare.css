@@ -2,7 +2,7 @@
 .sidebar {
   width: 260px;
   min-height: 100vh;
-  background: #1a2b5e;
+  background: linear-gradient(180deg, #2447b5 0%, #111a30 100%);
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -150,6 +150,14 @@
   align-items: center;
   justify-content: center;
   letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.user-avatar-img {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
   flex-shrink: 0;
 }
 

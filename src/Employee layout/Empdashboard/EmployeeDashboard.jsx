@@ -99,46 +99,8 @@ function getTodayString() {
 }
 
 /* ─────────────────────────────────────────────────────────
-   SUB-COMPONENT — AvatarIcon
-   A simple SVG silhouette that matches the line-art avatar
-   in the screenshot. Replace with <img> if real photos exist.
-
-   No props needed — it's a static decoration.
+   AvatarIcon component removed. Replaced with modern initials avatar inline.
 ───────────────────────────────────────────────────────── */
-function AvatarIcon() {
-  return (
-    /* role="img" + aria-label make the SVG accessible to screen readers */
-    <svg
-      className="emp-card__avatar-svg"
-      viewBox="0 0 120 130"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      role="img"
-      aria-label="Employee avatar silhouette"
-    >
-      {/* Head circle */}
-      <circle cx="60" cy="42" r="28" stroke="#1B2559" strokeWidth="4" />
-
-      {/* Hair tuft on top — matches the screenshot illustration */}
-      <path
-        d="M48 20 Q55 10 65 18"
-        stroke="#1B2559"
-        strokeWidth="4"
-        strokeLinecap="round"
-        fill="none"
-      />
-
-      {/* Shoulders / body arc */}
-      <path
-        d="M10 128 C10 95 30 78 60 78 C90 78 110 95 110 128"
-        stroke="#1B2559"
-        strokeWidth="4"
-        strokeLinecap="round"
-        fill="none"
-      />
-    </svg>
-  );
-}
 
 /* ─────────────────────────────────────────────────────────
    SUB-COMPONENT — AnnouncementItem
@@ -185,6 +147,63 @@ function EventItem({ label, dot }) {
 }
 
 /* ─────────────────────────────────────────────────────────
+   SUB-COMPONENT — PayslipItem
+   Renders a single row in the Recent Payslips list.
+───────────────────────────────────────────────────────── */
+function PayslipItem({ month, netPay }) {
+  return (
+    <li className="payslip-item">
+      <div className="payslip-item__info">
+        <span className="payslip-item__icon" aria-hidden="true">📄</span>
+        <div className="payslip-item__text">
+          <p className="payslip-item__month">{month}</p>
+          <p className="payslip-item__pay">Net Pay: {netPay}</p>
+        </div>
+      </div>
+      <button className="payslip-item__download" aria-label={`Download ${month} payslip`}>
+        ↓
+      </button>
+    </li>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────
+   SUB-COMPONENT — AttendanceSummary
+   A visual indicator of days present vs total working days.
+───────────────────────────────────────────────────────── */
+function AttendanceSummary({ present, total }) {
+  const pct = total > 0 ? Math.round((present / total) * 100) : 0;
+
+  return (
+    <div className="att-summary">
+      <div className="att-summary__circle" style={{ '--pct': `${pct}%` }}>
+        <span className="att-summary__val">{pct}%</span>
+      </div>
+      <div className="att-summary__stats">
+        <p className="att-summary__label">Current Month</p>
+        <p className="att-summary__days"><strong>{present}</strong> / {total} days present</p>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────
+   SUB-COMPONENT — QuickStat
+   A small widget displaying a single data point.
+───────────────────────────────────────────────────────── */
+function QuickStat({ title, value, icon, bgClass }) {
+  return (
+    <div className="quick-stat">
+      <div className={`quick-stat__icon ${bgClass}`}>{icon}</div>
+      <div className="quick-stat__info">
+        <h3 className="quick-stat__title">{title}</h3>
+        <p className="quick-stat__value">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────
    MAIN COMPONENT — EmployeeDashboard
    Assembles all sub-components into the full page layout.
 ───────────────────────────────────────────────────────── */
@@ -199,7 +218,14 @@ export default function EmployeeDashboard() {
   const [employeeData, setEmployeeData] = useState({
     name: "Loading...",
     id: "Loading...",
-    department: "Engineering", // Mocked
+    department: "Loading...",
+    avatarUrl: null,
+  });
+  const [stats, setStats] = useState({
+    availableLeave: "...",
+    pendingTasks: "...",
+    attendancePresent: 0,
+    attendanceTotal: 22,
   });
 
   useEffect(() => {
@@ -212,23 +238,25 @@ export default function EmployeeDashboard() {
           .select(`
             emp_id,
             departments (name),
-            profiles (full_name, role)
+            profiles (full_name, role, avatar_url)
           `)
           .eq('id', session.user.id)
           .maybeSingle();
         
         if (data) {
           const profile = data.profiles || {};
+          
           setEmployeeData({
             name: profile.full_name || "Employee",
             id: data.emp_id || "EMP-XXX",
             department: data.departments?.name || "Unassigned",
+            avatarUrl: profile.avatar_url,
           });
         } else {
           // Fallback if they are in profiles but not employees
           const { data: fallbackData } = await supabase
             .from('profiles')
-            .select('full_name, role')
+            .select('full_name, role, avatar_url')
             .eq('id', session.user.id)
             .maybeSingle();
 
@@ -238,9 +266,54 @@ export default function EmployeeDashboard() {
               name: fallbackData.full_name || "Employee",
               id: `EMP-${shortId}`,
               department: "Unassigned",
+              avatarUrl: fallbackData.avatar_url,
             });
           }
         }
+
+        // Fetch leave data for dynamic stats
+        const { data: leaveData } = await supabase
+          .from('leave_requests')
+          .select('status, total_days')
+          .eq('employee_id', session.user.id);
+
+        let approvedDays = 0;
+        let pendingCount = 0;
+        if (leaveData) {
+          leaveData.forEach(req => {
+            if (req.status === 'Approved') {
+              approvedDays += (req.total_days || 0);
+            } else if (req.status === 'Pending') {
+              pendingCount += 1;
+            }
+          });
+        }
+        
+        const TOTAL_ANNUAL_LEAVE = 14;
+
+        // Fetch Attendance for current month
+        const today = new Date();
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+        const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
+
+        const { data: attData } = await supabase
+          .from("attendance")
+          .select("status")
+          .eq("employee_id", session.user.id)
+          .gte("date", firstDay)
+          .lte("date", lastDay);
+        
+        let presentCount = 0;
+        if (attData) {
+           presentCount = attData.filter(a => a.status === "Present").length;
+        }
+
+        setStats({
+          availableLeave: `${Math.max(0, TOTAL_ANNUAL_LEAVE - approvedDays)} Days`,
+          pendingTasks: `${pendingCount} Items`,
+          attendancePresent: presentCount,
+          attendanceTotal: 22,
+        });
       }
     };
     fetchProfile();
@@ -257,54 +330,46 @@ export default function EmployeeDashboard() {
      */
     <main className={`emp-dashboard ${visible ? "emp-dashboard--visible" : ""}`}>
 
-      {/* ── Page Header ─────────────────────────────── */}
-      <header className="emp-dashboard__header">
-        {/* Bold section title — "Employee ID" as in screenshot */}
-        <h1 className="emp-dashboard__title">Employee ID</h1>
-        {/* Current date line below the title */}
-        <p className="emp-dashboard__date">{getTodayString()}</p>
-      </header>
+      {/* ── Quick Stats Row ──────────────────────────── */}
+      <section className="emp-dashboard__stats" aria-label="Quick statistics">
+        <QuickStat title="Available Leave" value={stats.availableLeave} icon="🏖️" bgClass="bg-blue" />
+        <QuickStat title="Next Holiday" value="Aug 15" icon="🎉" bgClass="bg-pink" />
+        <QuickStat title="Pending Leaves" value={stats.pendingTasks} icon="📋" bgClass="bg-yellow" />
+      </section>
 
       {/* ── Employee ID Card ─────────────────────────── */}
-      {/*
-        This is the large lavender tile showing:
-          · Avatar silhouette (left)
-          · Employee Name / ID / Department (right)
-      */}
       <section className="emp-card" aria-label="Employee identification card">
+        <div className="emp-card__bg-decoration"></div>
+        <div className="emp-card__content">
+          
+          {/* Left: Modern Avatar */}
+          <div className="emp-card__avatar-wrap">
+            {employeeData.avatarUrl ? (
+              <img src={employeeData.avatarUrl} alt={`${employeeData.name}'s avatar`} className="emp-card__avatar-img" />
+            ) : (
+              <div className="emp-card__avatar-placeholder">
+                {employeeData.name && employeeData.name !== "Loading..." 
+                  ? employeeData.name.charAt(0).toUpperCase() 
+                  : "E"}
+              </div>
+            )}
+          </div>
 
-        {/* Left: Avatar illustration */}
-        <div className="emp-card__avatar-wrap">
-          <AvatarIcon />
+          {/* Right: Clean modern details */}
+          <div className="emp-card__details">
+            <h2 className="emp-card__name">{employeeData.name}</h2>
+            <div className="emp-card__badges">
+              <span className="emp-card__badge emp-card__badge--dept">
+                <span className="badge-dot"></span>
+                {employeeData.department}
+              </span>
+              <span className="emp-card__badge emp-card__badge--id">
+                ID: {employeeData.id}
+              </span>
+            </div>
+          </div>
+
         </div>
-
-        {/* Right: Three detail rows */}
-        <dl className="emp-card__details">
-
-          {/* Employee Name row */}
-          <div className="emp-card__row">
-            {/* <dt> = definition term (the label) */}
-            <dt className="emp-card__field-label">Employee Name:</dt>
-            {/* <dd> = definition description (the value) */}
-            <dd className="emp-card__field-value">{employeeData.name}</dd>
-          </div>
-
-          {/* Employee ID row */}
-          <div className="emp-card__row">
-            <dt className="emp-card__field-label">Employee ID:</dt>
-            <dd className="emp-card__field-value emp-card__field-value--mono">
-              {/* Monospace font for the ID code */}
-              {employeeData.id}
-            </dd>
-          </div>
-
-          {/* Department row */}
-          <div className="emp-card__row">
-            <dt className="emp-card__field-label">Employee Department :</dt>
-            <dd className="emp-card__field-value">{employeeData.department}</dd>
-          </div>
-
-        </dl>
       </section>
 
       {/* ── Bottom Two-Column Row ─────────────────────── */}
@@ -336,6 +401,27 @@ export default function EmployeeDashboard() {
                 dot={item.dot}
               />
             ))}
+          </ul>
+        </section>
+
+      </div>
+
+      {/* ── Second Bottom Two-Column Row ──────────────── */}
+      <div className="emp-dashboard__bottom" style={{ marginTop: 'var(--space-lg)' }}>
+        
+        {/* Left card: Attendance Summary */}
+        <section className="info-card" aria-label="Attendance summary">
+          <h2 className="info-card__title">Attendance Summary</h2>
+          <AttendanceSummary present={stats.attendancePresent} total={stats.attendanceTotal} />
+        </section>
+
+        {/* Right card: Recent Payslips */}
+        <section className="info-card" aria-label="Recent payslips">
+          <h2 className="info-card__title">Recent Payslips</h2>
+          <ul className="info-card__list">
+            <PayslipItem month="May 2026" netPay="₹ 45,000" />
+            <PayslipItem month="April 2026" netPay="₹ 45,000" />
+            <PayslipItem month="March 2026" netPay="₹ 42,500" />
           </ul>
         </section>
 

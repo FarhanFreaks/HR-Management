@@ -57,6 +57,7 @@ const EMPLOYEE = {
   /* Avatar colours — initials-based avatar */
   avatarBg:     "#D1FAE5",
   avatarColor:  "#065F46",
+  avatarUrl:    null,
 
   /* Leave balance (days) */
   leave: {
@@ -186,7 +187,7 @@ export default function EmployeeProfile() {
             status,
             joined_date,
             departments (name),
-            profiles (full_name, role)
+            profiles (full_name, role, avatar_url)
           `)
           .eq('id', session.user.id)
           .maybeSingle();
@@ -211,12 +212,13 @@ export default function EmployeeProfile() {
             department: data.departments?.name || "Unassigned",
             status: data.status || "Active",
             joined: data.joined_date || prev.joined,
+            avatarUrl: profile.avatar_url,
           }));
         } else {
           // Fallback
           const { data: fallbackData } = await supabase
             .from('profiles')
-            .select('full_name, role')
+            .select('full_name, role, avatar_url')
             .eq('id', session.user.id)
             .maybeSingle();
 
@@ -238,6 +240,7 @@ export default function EmployeeProfile() {
               role: fallbackData.role ? fallbackData.role.charAt(0).toUpperCase() + fallbackData.role.slice(1) : "Employee",
               email: session.user.email || prev.email,
               department: "Unassigned",
+              avatarUrl: fallbackData.avatar_url,
             }));
           }
         }
@@ -268,13 +271,17 @@ export default function EmployeeProfile() {
       <section className="hero-card" aria-label="Employee profile summary">
 
         {/* Avatar */}
-        <div
-          className="hero-card__avatar"
-          style={{ background: employee.avatarBg, color: employee.avatarColor }}
-          aria-label={`${employee.name} avatar`}
-        >
-          {employee.initials}
-        </div>
+        {employee.avatarUrl ? (
+          <img src={employee.avatarUrl} alt={`${employee.name} avatar`} className="hero-card__avatar-img" />
+        ) : (
+          <div
+            className="hero-card__avatar"
+            style={{ background: employee.avatarBg, color: employee.avatarColor }}
+            aria-label={`${employee.name} avatar`}
+          >
+            {employee.initials}
+          </div>
+        )}
 
         {/* Name + role */}
         <div className="hero-card__identity">

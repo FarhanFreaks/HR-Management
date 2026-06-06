@@ -56,8 +56,6 @@ const Employee = () => {
     <div className="page-wrapper">
       {/* Top Navigation Bar */}
       <div className="topbar">
-        <h1 className="page-title">Employee Details</h1>
-        
         <div className="topbar-actions">
           <div className="search-wrap">
             <svg className="search-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -83,10 +81,6 @@ const Employee = () => {
             <option value="HR">HR</option>
             <option value="Marketing">Marketing</option>
           </select>
-          
-          <button className="add-btn">
-            <span className="plus-icon">+</span> Add Employee
-          </button>
         </div>
       </div>
       

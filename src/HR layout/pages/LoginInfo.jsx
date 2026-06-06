@@ -10,7 +10,8 @@ export default function LoginInfo() {
     role: 'HR Admin',
     id: 'Loading...',
     email: 'Loading...',
-    initials: 'HR'
+    initials: 'HR',
+    avatarUrl: null
   });
 
   useEffect(() => {
@@ -19,7 +20,7 @@ export default function LoginInfo() {
       if (session) {
         const { data } = await supabase
           .from('profiles')
-          .select('full_name, role')
+          .select('full_name, role, avatar_url')
           .eq('id', session.user.id)
           .single();
         
@@ -49,7 +50,8 @@ export default function LoginInfo() {
             role: data.role ? data.role.charAt(0).toUpperCase() + data.role.slice(1) : 'HR Admin',
             id: empId,
             email: session.user.email || 'No email',
-            initials: initials
+            initials: initials,
+            avatarUrl: data.avatar_url
           });
         }
       }
@@ -70,7 +72,11 @@ export default function LoginInfo() {
         <h2 className="card-heading">Login Information</h2>
 
         <div className="profile-row">
-          <div className="profile-avatar">{profile.initials}</div>
+          {profile.avatarUrl ? (
+            <img src={profile.avatarUrl} alt={`${profile.name} avatar`} className="profile-avatar-img" />
+          ) : (
+            <div className="profile-avatar">{profile.initials}</div>
+          )}
           <div className="profile-details">
             <span className="profile-name">{profile.name}</span>
             <span className="profile-role">{profile.role}</span>

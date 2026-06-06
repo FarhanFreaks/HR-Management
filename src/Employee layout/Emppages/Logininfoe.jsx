@@ -10,7 +10,8 @@ export default function LoginInfo() {
     role: 'Employee',
     id: 'Loading...',
     email: 'Loading...',
-    initials: 'EP'
+    initials: 'EP',
+    avatarUrl: null
   });
 
   useEffect(() => {
@@ -21,7 +22,7 @@ export default function LoginInfo() {
           .from('employees')
           .select(`
             emp_id,
-            profiles (full_name, role)
+            profiles (full_name, role, avatar_url)
           `)
           .eq('id', session.user.id)
           .maybeSingle();
@@ -41,13 +42,14 @@ export default function LoginInfo() {
             role: profileData.role ? profileData.role.charAt(0).toUpperCase() + profileData.role.slice(1) : 'Employee',
             id: data.emp_id || 'EMP-XXX',
             email: session.user.email || 'No email',
-            initials: initials
+            initials: initials,
+            avatarUrl: profileData.avatar_url
           });
         } else {
           // Fallback
           const { data: fallbackData } = await supabase
             .from('profiles')
-            .select('full_name, role')
+            .select('full_name, role, avatar_url')
             .eq('id', session.user.id)
             .maybeSingle();
 
@@ -66,7 +68,8 @@ export default function LoginInfo() {
               role: fallbackData.role ? fallbackData.role.charAt(0).toUpperCase() + fallbackData.role.slice(1) : 'Employee',
               id: `EMP-${shortId}`,
               email: session.user.email || 'No email',
-              initials: initials
+              initials: initials,
+              avatarUrl: fallbackData.avatar_url
             });
           }
         }
@@ -87,7 +90,11 @@ export default function LoginInfo() {
 
         {/* User profile row */}
         <div className="profile-row">
-          <div className="profile-avatar">{profile.initials}</div>
+          {profile.avatarUrl ? (
+            <img src={profile.avatarUrl} alt={`${profile.name} avatar`} className="profile-avatar-img" />
+          ) : (
+            <div className="profile-avatar">{profile.initials}</div>
+          )}
           <div className="profile-details">
             <span className="profile-name">{profile.name}</span>
             <span className="profile-role">{profile.role}</span>

@@ -2,7 +2,7 @@
 .app-layout {
   display: flex;
   min-height: 100vh;
-  background: #f0f2f8;
+  background: #FFFFFF;
 }
 
 /* ── Main content area (offset by sidebar width) ── */
@@ -19,8 +19,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 28px 40px 20px;
-  background: #f0f2f8;
+  padding: 48px 48px 16px;
+  background: transparent;
 }
 
 .page-title {
@@ -61,7 +61,7 @@
 /* ── Page body ── */
 .page-body {
   flex: 1;
-  padding: 8px 40px 40px;
+  padding: 48px 48px 48px;
 }
 
 /* ── Mobile: offset by narrow sidebar ── */
@@ -71,7 +71,7 @@
   }
 
   .page-header {
-    padding: 20px 18px 14px;
+    padding: 32px 16px 16px;
   }
 
   .page-title {
@@ -84,6 +84,75 @@
   }
 
   .page-body {
-    padding: 6px 16px 30px;
+    padding: 32px 16px 30px;
   }
 }
+
+/* ── Staggered Module Transitions (Like Dashboard) ── */
+@keyframes slideUpFade {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Target all main UI elements across the software */
+.stat-card,
+.table-card,
+.detail-card,
+.payroll-table tbody tr,
+.candidates-card,
+.department-card,
+.job-card,
+.cand-card,
+.cand-stat-card,
+.job-stat-card,
+.attendance-card,
+.attendance-stats-row > div,
+.emp-row {
+  opacity: 0;
+  animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Topbars and filters load immediately */
+.topbar,
+.topbar-actions, 
+.job-filter-bar, 
+.candidate-filter-bar, 
+.tabs-wrapper,
+.attendance-controls,
+.col-header {
+  opacity: 0;
+  animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: 0s;
+}
+
+/* ── Staggered Delays for Grids (Stat Cards) ── */
+.stats-grid > *:nth-child(1), .cand-stats-row > *:nth-child(1), .job-stats-row > *:nth-child(1), .attendance-stats-row > div:nth-child(1) { animation-delay: 0.05s; }
+.stats-grid > *:nth-child(2), .cand-stats-row > *:nth-child(2), .job-stats-row > *:nth-child(2), .attendance-stats-row > div:nth-child(2) { animation-delay: 0.12s; }
+.stats-grid > *:nth-child(3), .cand-stats-row > *:nth-child(3), .job-stats-row > *:nth-child(3), .attendance-stats-row > div:nth-child(3) { animation-delay: 0.19s; }
+.stats-grid > *:nth-child(4), .cand-stats-row > *:nth-child(4), .job-stats-row > *:nth-child(4), .attendance-stats-row > div:nth-child(4) { animation-delay: 0.26s; }
+.stats-grid > *:nth-child(5), .cand-stats-row > *:nth-child(5) { animation-delay: 0.33s; }
+.stats-grid > *:nth-child(6), .cand-stats-row > *:nth-child(6) { animation-delay: 0.40s; }
+
+/* ── Main content blocks follow stats ── */
+.table-card, 
+.detail-card, 
+.recruitment-mid,
+.attendance-card {
+  animation-delay: 0.35s;
+}
+
+/* ── Stagger Table Rows & Card Lists ── */
+.payroll-table tbody tr:nth-child(1), .job-cards-grid > *:nth-child(1), .cand-cards-grid > *:nth-child(1), .attendance-grid-row:nth-child(1), .emp-row:nth-child(1) { animation-delay: 0.40s; }
+.payroll-table tbody tr:nth-child(2), .job-cards-grid > *:nth-child(2), .cand-cards-grid > *:nth-child(2), .attendance-grid-row:nth-child(2), .emp-row:nth-child(2) { animation-delay: 0.45s; }
+.payroll-table tbody tr:nth-child(3), .job-cards-grid > *:nth-child(3), .cand-cards-grid > *:nth-child(3), .attendance-grid-row:nth-child(3), .emp-row:nth-child(3) { animation-delay: 0.50s; }
+.payroll-table tbody tr:nth-child(4), .job-cards-grid > *:nth-child(4), .cand-cards-grid > *:nth-child(4), .attendance-grid-row:nth-child(4), .emp-row:nth-child(4) { animation-delay: 0.55s; }
+.payroll-table tbody tr:nth-child(5), .job-cards-grid > *:nth-child(5), .cand-cards-grid > *:nth-child(5), .attendance-grid-row:nth-child(5), .emp-row:nth-child(5) { animation-delay: 0.60s; }
+.payroll-table tbody tr:nth-child(6), .attendance-grid-row:nth-child(6), .emp-row:nth-child(6) { animation-delay: 0.65s; }
+.payroll-table tbody tr:nth-child(7), .attendance-grid-row:nth-child(7), .emp-row:nth-child(7) { animation-delay: 0.70s; }
+.payroll-table tbody tr:nth-child(n+8), .attendance-grid-row:nth-child(n+8), .emp-row:nth-child(n+8) { animation-delay: 0.75s; }

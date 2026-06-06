@@ -41,7 +41,8 @@ export default function Sidebar() {
   const [profile, setProfile] = useState({
     name: 'Loading...',
     role: 'HR Admin',
-    initials: 'HR'
+    initials: 'HR',
+    avatarUrl: null
   });
 
   useEffect(() => {
@@ -50,7 +51,7 @@ export default function Sidebar() {
       if (session) {
         const { data } = await supabase
           .from('profiles')
-          .select('full_name, role')
+          .select('full_name, role, avatar_url')
           .eq('id', session.user.id)
           .single();
         
@@ -66,7 +67,8 @@ export default function Sidebar() {
           setProfile({
             name: name,
             role: data.role ? data.role.charAt(0).toUpperCase() + data.role.slice(1) : 'HR Admin',
-            initials: initials
+            initials: initials,
+            avatarUrl: data.avatar_url
           });
         }
       }
@@ -109,7 +111,11 @@ export default function Sidebar() {
           onClick={() => navigate('/login-info')}
           title="View login information"
         >
-          <div className="user-avatar">{profile.initials}</div>
+          {profile.avatarUrl ? (
+            <img src={profile.avatarUrl} alt={`${profile.name} avatar`} className="user-avatar-img" />
+          ) : (
+            <div className="user-avatar">{profile.initials}</div>
+          )}
           <div className="user-info">
             <span className="user-name">{profile.name}</span>
             <span className="user-role">{profile.role}</span>

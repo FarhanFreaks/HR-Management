@@ -1,130 +1,178 @@
-/* Container layout to center the card on the page */
-.action-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh; /* Changed to vh so it centers vertically perfectly on the screen */
+/* Full Page Wrapper with Premium Corporate Gradient */
+.qa-wrapper {
+  position: relative;
+  min-height: 100vh;
   width: 100%;
-  padding: 1.5rem;
-  background-color: #f8fafc;
-  box-sizing: border-box; /* Prevents padding from breaking layout width */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #1a2b5e 0%, #0d1b42 100%);
+  overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  padding: 2rem;
+  box-sizing: border-box;
 }
 
-/* Card wrapper layout */
-.action-card {
+/* Background Glowing Shapes */
+.qa-bg-shape {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  z-index: 0;
+  animation: float 8s ease-in-out infinite alternate;
+}
+
+.qa-shape-1 {
+  top: -10%;
+  left: -10%;
+  width: 400px;
+  height: 400px;
+  background: rgba(36, 71, 181, 0.4);
+}
+
+.qa-shape-2 {
+  bottom: -20%;
+  right: -10%;
+  width: 500px;
+  height: 500px;
+  background: rgba(22, 163, 74, 0.15);
+  animation-delay: -4s;
+}
+
+@keyframes float {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(30px, 30px) scale(1.05); }
+}
+
+/* Solid White Card */
+.qa-glass-card {
+  position: relative;
+  z-index: 1;
   background: #ffffff;
-  padding: 2.5rem 2rem;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  max-width: 450px;
+  border-radius: 24px;
+  padding: 3.5rem 3rem;
   width: 100%;
-  border: 1px solid #e2e8f0;
-  box-sizing: border-box;
-  
-  /* Forces internal container elements to align perfectly center */
-  display: flex;
-  flex-direction: column;
-  align-items: center; 
+  max-width: 650px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
   text-align: center;
 }
 
-.action-title {
-  margin: 0 0 0.5rem 0;
-  color: #1e293b;
-  font-size: 1.5rem;
-  font-weight: 600;
-  width: 100%;
+.qa-header {
+  margin-bottom: 3rem;
 }
 
-.action-subtitle {
-  margin: 0 0 2rem 0;
+.qa-title {
+  color: #1e293b;
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem 0;
+  letter-spacing: -0.5px;
+}
+
+.qa-subtitle {
+  color: #94a3b8;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+/* Action Tiles Grid */
+.qa-tile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+/* Base Tile Styling */
+.qa-tile {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 2.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+  text-decoration: none;
+}
+
+/* Tile Hover Effects */
+.qa-tile:hover {
+  transform: translateY(-8px);
+  background: #ffffff;
+  box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.1);
+}
+
+.qa-tile--login:hover {
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+.qa-tile--attendance:hover {
+  border-color: rgba(34, 197, 94, 0.5);
+}
+
+/* Icon Wrapper */
+.qa-icon-wrapper {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  font-size: 2rem;
+  transition: transform 0.3s ease;
+}
+
+.qa-tile--login .qa-icon-wrapper {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+}
+
+.qa-tile--attendance .qa-icon-wrapper {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+}
+
+.qa-tile:hover .qa-icon-wrapper {
+  transform: scale(1.1);
+}
+
+.qa-tile--login:hover .qa-icon-wrapper {
+  background: rgba(59, 130, 246, 0.25);
+}
+
+.qa-tile--attendance:hover .qa-icon-wrapper {
+  background: rgba(34, 197, 94, 0.25);
+}
+
+/* Tile Text */
+.qa-tile-title {
+  color: #1e293b;
+  font-size: 1.35rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+
+.qa-tile-desc {
   color: #64748b;
   font-size: 0.95rem;
   line-height: 1.5;
-  width: 100%;
+  margin: 0;
 }
 
-/* Button Layout Structure */
-.button-group {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  align-items: center;
-  width: 100%; /* Ensures the grid container respects card borders */
-}
-
-/* Base button styles */
-.btn {
-  flex: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 500;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-sizing: border-box;
-}
-
-.btn__icon {
-  font-size: 1.1rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Login button variant (Blue) */
-.btn--login {
-  background-color: #2563eb;
-  color: #ffffff;
-}
-
-.btn--login:hover {
-  background-color: #1d4ed8;
-  transform: translateY(-1px);
-}
-
-.btn--login:active {
-  transform: translateY(0);
-}
-
-/* Attendance button variant (Green) */
-.btn--attendance {
-  background-color: #16a34a;
-  color: #ffffff;
-}
-
-.btn--attendance:hover {
-  background-color: #15803d;
-  transform: translateY(-1px);
-}
-
-.btn--attendance:active {
-  transform: translateY(0);
-}
-
-/* Responsive updates for mobile and narrow viewports */
-@media (max-width: 480px) {
-  .action-container {
-    padding: 1rem;
+/* Responsive */
+@media (max-width: 600px) {
+  .qa-tile-grid {
+    grid-template-columns: 1fr;
   }
   
-  .action-card {
-    padding: 2rem 1.25rem;
+  .qa-glass-card {
+    padding: 2.5rem 1.5rem;
   }
-
-  .button-group {
-    flex-direction: column; /* Stack buttons vertically on small screens */
-    width: 100%;
-  }
-
-  .btn {
-    width: 100%; 
+  
+  .qa-title {
+    font-size: 1.75rem;
   }
 }

@@ -10,15 +10,40 @@ const PRIORITY = ["Low", "Medium", "High", "Urgent"];
 const CURRENCIES = ["INR", "USD", "EUR", "GBP"];
 const SKILL_SUGGESTIONS = ["React", "Node.js", "Python", "Java", "SQL", "Figma", "AWS", "TypeScript", "MongoDB", "Docker"];
 
-const PostJobModal = ({ onClose, onJobPosted }) => {
+const PostJobModal = ({ onClose, onJobPosted, initialData }) => {
   const [step, setStep] = useState(1);
   const [skillInput, setSkillInput] = useState("");
-  const [form, setForm] = useState({
-    jobTitle: "", department: "", jobType: "", workMode: "On-site",
-    openings: 1, description: "", responsibilities: "", skills: [],
-    experience: "", education: "", salaryMin: "", salaryMax: "",
-    currency: "INR", deadline: "", joiningDate: "", priority: "Medium",
-    hiringManager: "", contactEmail: "",
+  
+  const [form, setForm] = useState(() => {
+    if (initialData) {
+      return {
+        jobTitle: initialData.title || "",
+        department: initialData.department || "",
+        jobType: initialData.job_type || initialData.jobType || "",
+        workMode: initialData.work_mode || initialData.workMode || "On-site",
+        openings: initialData.openings || 1,
+        description: initialData.description || "",
+        responsibilities: Array.isArray(initialData.responsibilities) ? initialData.responsibilities.join('\n') : initialData.responsibilities || "",
+        skills: Array.isArray(initialData.skills) ? initialData.skills : [],
+        experience: initialData.experience || "",
+        education: initialData.education || "",
+        salaryMin: initialData.salary_min || initialData.salaryMin || "",
+        salaryMax: initialData.salary_max || initialData.salaryMax || "",
+        currency: initialData.currency || "INR",
+        deadline: initialData.deadline || "",
+        joiningDate: initialData.joining_date || initialData.joiningDate || "",
+        priority: initialData.priority || "Medium",
+        hiringManager: initialData.hiring_manager || initialData.hiringManager || "",
+        contactEmail: initialData.contact_email || initialData.contactEmail || "",
+      };
+    }
+    return {
+      jobTitle: "", department: "", jobType: "", workMode: "On-site",
+      openings: 1, description: "", responsibilities: "", skills: [],
+      experience: "", education: "", salaryMin: "", salaryMax: "",
+      currency: "INR", deadline: "", joiningDate: "", priority: "Medium",
+      hiringManager: "", contactEmail: "",
+    };
   });
 
   const update = (field, value) => setForm((f) => ({ ...f, [field]: value }));
@@ -64,16 +89,32 @@ const PostJobModal = ({ onClose, onJobPosted }) => {
     };
 
     try {
-      const { data, error } = await supabase
-        .from("job_openings")
-        .insert([dbPayload])
-        .select();
+      let data, error;
+      
+      if (initialData && initialData.id) {
+        // Update existing job
+        const res = await supabase
+          .from("job_openings")
+          .update(dbPayload)
+          .eq("id", initialData.id)
+          .select();
+        data = res.data;
+        error = res.error;
+      } else {
+        // Insert new job
+        const res = await supabase
+          .from("job_openings")
+          .insert([dbPayload])
+          .select();
+        data = res.data;
+        error = res.error;
+      }
 
       if (error) throw error;
 
       if (data && data.length > 0) {
         onJobPosted(data[0]); 
-        alert("✅ Job posted successfully to Supabase Database!");
+        alert(initialData ? "✅ Job updated successfully in Database!" : "✅ Job posted successfully to Supabase Database!");
         onClose();
       }
     } catch (error) {
@@ -89,8 +130,8 @@ const PostJobModal = ({ onClose, onJobPosted }) => {
         {/* Header */}
         <div className="modal-header">
           <div>
-            <h2 className="modal-title">Post New Job</h2>
-            <p className="modal-subtitle">Fill in the details to create a new job opening</p>
+            <h2 className="modal-title">{initialData ? "Edit Job" : "Post New Job"}</h2>
+            <p className="modal-subtitle">{initialData ? "Update the details of this job opening" : "Fill in the details to create a new job opening"}</p>
           </div>
           <button className="modal-close" onClick={onClose}>✕</button>
         </div>
@@ -277,7 +318,7 @@ const PostJobModal = ({ onClose, onJobPosted }) => {
             {step > 1 && <button className="btn-back" onClick={() => setStep(step - 1)}>← Back</button>}
             {step < totalSteps
               ? <button className="btn-next" onClick={() => setStep(step + 1)}>Next →</button>
-              : <button className="btn-post" onClick={handleSubmit}>🚀 Post Job</button>
+              : <button className="btn-post" onClick={handleSubmit}>{initialData ? "💾 Update Job" : "🚀 Post Job"}</button>
             }
           </div>
         </div>

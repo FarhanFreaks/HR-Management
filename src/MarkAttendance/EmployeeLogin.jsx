@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../config/supabaseClient';
 import './EmployeeLogin.css';
+import { FaUserClock } from 'react-icons/fa';
 import {
   clearAttendanceSession,
   createAttendanceSession,
@@ -97,10 +98,17 @@ const EmployeeLogin = () => {
 
   return (
     <div className="employee-login-container">
+      {/* Background design elements */}
+      <div className="qa-bg-shape qa-shape-1"></div>
+      <div className="qa-bg-shape qa-shape-2"></div>
+
       <div className="employee-login-wrapper">
         <div className="login-header">
-          <h1>🔐 Employee Attendance</h1>
-          <p>Mark Your Attendance</p>
+          <div className="header-icon-wrapper">
+            <FaUserClock />
+          </div>
+          <h1>Employee Attendance</h1>
+          <p>Mark Your Daily Presence</p>
         </div>
 
         <form className="employee-login-form" onSubmit={handleLogin}>

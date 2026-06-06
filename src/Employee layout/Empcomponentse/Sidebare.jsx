@@ -36,7 +36,7 @@ export default function Sidebar() {
       if (session) {
         const { data } = await supabase
           .from('profiles')
-          .select('full_name, role')
+          .select('full_name, role, avatar_url')
           .eq('id', session.user.id)
           .single();
         
@@ -52,7 +52,8 @@ export default function Sidebar() {
           setProfile({
             full_name: name,
             role: data.role ? data.role.charAt(0).toUpperCase() + data.role.slice(1) : 'Employee',
-            initials
+            initials,
+            avatarUrl: data.avatar_url
           });
         }
       }
@@ -96,7 +97,11 @@ export default function Sidebar() {
           onClick={() => navigate('/emplogin-info')}
           title="View login information"
         >
-          <div className="user-avatar">{profile.initials}</div>
+          {profile.avatarUrl ? (
+            <img src={profile.avatarUrl} alt={`${profile.full_name} avatar`} className="user-avatar-img" />
+          ) : (
+            <div className="user-avatar">{profile.initials}</div>
+          )}
           <div className="user-info">
             <span className="user-name">{profile.full_name}</span>
             <span className="user-role">{profile.role}</span>

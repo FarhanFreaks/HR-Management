@@ -3,8 +3,8 @@ import Sidebar from './Sidebar';
 import '../styles/Layout.css';
 
 const pageTitles = {
-  '/dashboard': 'Dashboard',
-  '/employee': 'Employee',
+  '/dashboard': 'Overview',
+  '/employee': 'Employee Details',
   '/attendance': 'Attendance',
   '/payroll': 'Payroll',
   '/leave': 'Leave',
@@ -14,7 +14,12 @@ const pageTitles = {
 
 export default function Layout() {
   const location = useLocation();
-  const title = pageTitles[location.pathname] || 'HRConnect';
+  let title = pageTitles[location.pathname];
+  if (location.pathname.startsWith('/employee/')) {
+    title = 'Employee Profile';
+  } else if (title === undefined) {
+    title = 'HRConnect';
+  }
 
   return (
     <div className="app-layout">
@@ -22,7 +27,6 @@ export default function Layout() {
       <div className="main-content">
         <header className="page-header">
           <h1 className="page-title">{title}</h1>
-        
         </header>
         <div className="page-body">
           <Outlet />
