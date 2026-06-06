@@ -12,6 +12,18 @@
   gap: var(--space-lg, 24px);
 }
 
+@media (max-width: 1024px) {
+  .attendance-stats-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .attendance-stats-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 .stat-card {
   background: var(--bg-card, #FFFFFF);
   border: 1px solid var(--border-color, #E2E8F0);
@@ -77,6 +89,10 @@
 }
 
 /* ── Table Grid ── */
+.attendance-grid-container {
+  min-width: 800px; /* Forces horizontal scroll on mobile */
+}
+
 .attendance-grid-header {
   display: grid;
   grid-template-columns: 80px 1.5fr 1fr 1fr 1fr 120px;
@@ -150,7 +166,7 @@
 .table-scroll {
   max-height: 400px; 
   overflow-y: auto;
-  overflow-x: hidden;
+  overflow-x: auto;
 }
 
 .table-scroll::-webkit-scrollbar { width: 14px; }

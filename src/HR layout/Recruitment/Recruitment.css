@@ -320,3 +320,40 @@
   background: #f1f5f9;
   color: #475569;
 }
+
+/* ---- Responsive ---- */
+@media (max-width: 1024px) {
+  .cards-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .recruitment-mid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .recruitment-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .tabs-wrapper {
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 4px;
+    margin-bottom: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .cards-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .pipeline-stage-selector {
+    flex-direction: column;
+    width: 100%;
+  }
+}

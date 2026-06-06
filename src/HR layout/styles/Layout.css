@@ -67,15 +67,15 @@
 /* ── Mobile: offset by narrow sidebar ── */
 @media (max-width: 768px) {
   .main-content {
-    margin-left: 64px;
+    margin-left: 0; /* Sidebar is now a drawer */
   }
 
   .page-header {
-    padding: 32px 16px 16px;
+    padding: 80px 20px 16px 20px; /* Top padding clears hamburger button */
   }
 
   .page-title {
-    font-size: 22px;
+    font-size: 26px;
   }
 
   .report-btn {
@@ -84,7 +84,7 @@
   }
 
   .page-body {
-    padding: 32px 16px 30px;
+    padding: 20px 16px 30px;
   }
 }
 

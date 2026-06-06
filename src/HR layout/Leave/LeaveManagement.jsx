@@ -198,16 +198,16 @@ export default function LeaveManagement() {
           </div>
         </div>
         
-        <div className="leave-grid-header">
-          <span>ID</span>
-          <span>Employee</span>
-          <span>Leave Type</span>
-          <span>Date</span>
-          <span>Duration</span>
-          <span>Action</span>
-        </div>
-
         <div className="table-scroll">
+          <div className="leave-grid-container">
+            <div className="leave-grid-header">
+              <span>ID</span>
+              <span>Employee</span>
+              <span>Leave Type</span>
+              <span>Date</span>
+              <span>Duration</span>
+              <span>Action</span>
+            </div>
           {loading ? (
             <div className="empty-state">Loading leave requests...</div>
           ) : errorMessage ? (
@@ -262,6 +262,7 @@ export default function LeaveManagement() {
           ) : (
             <div className="empty-state">No requests match your filters.</div>
           )}
+          </div>
         </div>
       </section>
 
@@ -289,16 +290,16 @@ export default function LeaveManagement() {
           </div>
         </div>
 
-        <div className="leave-grid-header">
-          <span>ID</span>
-          <span>Employee</span>
-          <span>Casual Leave</span>
-          <span>Sick Leave</span>
-          <span>Earned Leave</span>
-          <span>Dept</span>
-        </div>
-
         <div className="table-scroll">
+          <div className="leave-grid-container">
+            <div className="leave-grid-header">
+              <span>ID</span>
+              <span>Employee</span>
+              <span>Casual Leave</span>
+              <span>Sick Leave</span>
+              <span>Earned Leave</span>
+              <span>Dept</span>
+            </div>
           {loading ? (
             <div className="empty-state">Loading leave balances...</div>
           ) : errorMessage ? (
@@ -326,6 +327,7 @@ export default function LeaveManagement() {
           ) : (
              <div className="empty-state">No employees match your search.</div>
           )}
+          </div>
         </div>
       </section>
 

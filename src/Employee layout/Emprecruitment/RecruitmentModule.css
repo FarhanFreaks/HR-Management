@@ -537,3 +537,21 @@
     justify-content: flex-start;
   }
 }
+
+@media (max-width: 600px) {
+  .emp-job-view-modal {
+    max-height: 95vh;
+  }
+  .emp-job-view-header,
+  .emp-job-view-body,
+  .emp-job-view-footer {
+    padding: 20px;
+  }
+  .emp-close-btn {
+    top: 20px;
+    right: 20px;
+  }
+  .emp-job-view-header h2 {
+    font-size: 1.5rem;
+  }
+}

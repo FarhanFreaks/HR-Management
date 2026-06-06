@@ -34,6 +34,10 @@
 }
 
 /* ── Tables / Grids ── */
+.leave-grid-container {
+  min-width: 800px;
+}
+
 .leave-grid-header {
   display: grid;
   grid-template-columns: 80px 1.5fr 1fr 1fr 1fr 120px;
@@ -182,20 +186,27 @@
   outline: none;
 }
 
-/* ── Scrollable Table Container ── */
-.table-scroll {
-  max-height: 320px; /* Adjust this height to fit your screen perfectly */
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding-right: 4px; /* Space for the scrollbar */
+@media (max-width: 768px) {
+  .leave-card__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .leave-controls {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .leave-input {
+    flex: 1;
+    min-width: 150px;
+  }
 }
 
 /* ── Scrollable Table Container ── */
 .table-scroll {
   max-height: 340px; 
   overflow-y: auto;
-  overflow-x: hidden;
-  /* Remove padding-right, the scrollbar handles it now */
+  overflow-x: auto;
 }
 
 /* ── Premium macOS-Style Scrollbar ── */
@@ -225,6 +236,18 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: var(--space-lg, 24px);
+}
+
+@media (max-width: 1024px) {
+  .leave-stats-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .leave-stats-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 .stat-card {

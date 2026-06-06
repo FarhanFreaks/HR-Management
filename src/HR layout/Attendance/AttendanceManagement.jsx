@@ -231,16 +231,16 @@ export default function AttendanceManagement() {
           </div>
         </div>
 
-        <div className="attendance-grid-header">
-          <span>ID</span>
-          <span>Employee</span>
-          <span>Check In</span>
-          <span>Check Out</span>
-          <span>Status</span>
-          <span>Date</span>
-        </div>
-
         <div className="table-scroll">
+          <div className="attendance-grid-container">
+            <div className="attendance-grid-header">
+              <span>ID</span>
+              <span>Employee</span>
+              <span>Check In</span>
+              <span>Check Out</span>
+              <span>Status</span>
+              <span>Date</span>
+            </div>
           {loading ? (
             <div className="empty-state">Loading attendance records...</div>
           ) : errorMessage ? (
@@ -288,6 +288,7 @@ export default function AttendanceManagement() {
           ) : (
             <div className="empty-state">No attendance records found.</div>
           )}
+          </div>
         </div>
       </section>
     </div>

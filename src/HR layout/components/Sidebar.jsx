@@ -38,12 +38,20 @@ const navItems = [
 
 export default function Sidebar() {
   const navigate = useNavigate();
+  const [isOpen, setIsOpen] = useState(false);
   const [profile, setProfile] = useState({
     name: 'Loading...',
     role: 'HR Admin',
     initials: 'HR',
     avatarUrl: null
   });
+
+  // Close sidebar on route change on mobile
+  const handleNavClick = () => {
+    if (window.innerWidth <= 768) {
+      setIsOpen(false);
+    }
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -77,31 +85,39 @@ export default function Sidebar() {
   }, []);
 
   return (
-    <aside className="sidebar">
-      {/* Logo */}
-      <div className="sidebar-logo">
-        <div className="logo-badge">HR</div>
-        <div className="logo-text">
-          <span className="logo-title">HRConnect</span>
-          <span className="logo-subtitle">Management</span>
-        </div>
-      </div>
+    <>
+      <button className="mobile-menu-toggle" onClick={() => setIsOpen(!isOpen)}>
+        {isOpen ? '✕' : '☰'}
+      </button>
 
-      {/* Navigation */}
-      <nav className="sidebar-nav">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            className={({ isActive }) =>
-              `sidebar-nav-item${isActive ? ' active' : ''}`
-            }
-          >
-            <span className="nav-icon">{item.icon}</span>
-            <span className="nav-label">{item.label}</span>
-          </NavLink>
-        ))}
-      </nav>
+      {isOpen && <div className="sidebar-overlay" onClick={() => setIsOpen(false)} />}
+
+      <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
+        {/* Logo */}
+        <div className="sidebar-logo">
+          <div className="logo-badge">HR</div>
+          <div className="logo-text">
+            <span className="logo-title">HRConnect</span>
+            <span className="logo-subtitle">Management</span>
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <nav className="sidebar-nav">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              onClick={handleNavClick}
+              className={({ isActive }) =>
+                `sidebar-nav-item${isActive ? ' active' : ''}`
+              }
+            >
+              <span className="nav-icon">{item.icon}</span>
+              <span className="nav-label">{item.label}</span>
+            </NavLink>
+          ))}
+        </nav>
 
       {/* User Profile at Bottom */}
       <div className="sidebar-footer">
@@ -122,6 +138,7 @@ export default function Sidebar() {
           </div>
         </button>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }
